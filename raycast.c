@@ -40,7 +40,9 @@ int main(int argc, char **argv)
     struct file_contents fc = get_file_contents(input);
     fclose(input);
 
+    struct object *objects = get_csv_objects(&fc);
 
+    free(objects);
     free(fc.memory);
     return 0;
 }
