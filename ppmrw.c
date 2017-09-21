@@ -28,7 +28,7 @@ struct file_contents get_file_contents(FILE *fh)
     memory = malloc(size);
     fread(memory, 1, size, fh);
 
-    struct file_contents result = {memory, size};
+    struct file_contents result = {memory, size, 0};
     return result;
 }
 
