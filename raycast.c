@@ -1,5 +1,6 @@
 #include "ppmrw.h"
 #include "raycast.h"
+#include "csv_parser.h"
 
 #include <stdlib.h>
 #include <stdio.h>
