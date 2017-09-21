@@ -62,6 +62,7 @@ struct ppm_pixmap {
 struct file_contents {
     void *memory;
     size_t size;
+    u32 offset;
 };
 
 /*

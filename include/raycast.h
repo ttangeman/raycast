@@ -16,5 +16,3 @@ struct plane {
 struct camera {
     u32 width, height;
 };
-
-#include "csv_parser.h"
