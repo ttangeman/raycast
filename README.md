@@ -1,5 +1,5 @@
 # Introduction
-Raycast is a basic raycaster that is capable of projecting images fed in by JSON files.
+Raycast is a basic raycaster that is capable of projecting images fed in by CSV files.
 Projected images are written to disk in a PPM P6 image format.
 
 # Installation
@@ -7,7 +7,7 @@ Simply use the Makefile to build all of the project's binaries and libraries.
 
     make
 For a cleaner directory, use the install target to move the binary to a bin directory
-and clean up stray object files
+and clean up stray object files.
 
     make install
 
