@@ -4,6 +4,7 @@
 #include "raycast.h"
 
 enum object_type {
+    OBJ_UNKNOWN,
     OBJ_CAMERA,
     OBJ_SPHERE,
     OBJ_PLANE

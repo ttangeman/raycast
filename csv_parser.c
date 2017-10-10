@@ -1,47 +1,63 @@
 #include "csv_parser.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
+#include <string.h>
 
-static void get_token(struct file_contents *csv, char *buffer)
+static void get_line_offset(struct file_contents *csv)
 {
-    u32 bufoff = 0;
     char *memory = (char *)csv->memory;
-
-    while (memory[csv->offset] != ',') {
-        buffer[bufoff++] = memory[csv->offset++];
-    }
-    csv->offset++;
-    buffer[bufoff] = '\0';
-}
-
-static u32 get_num_objs(struct file_contents *csv)
-{
-    u32 nobjs = 0;
-    for (int i = 0; i < csv->size; i++) {
-        char c = ((char *)csv->memory)[i];
-        if ( c == '\n') {
-            nobjs++;
+    while (memory[csv->offset++]) {
+        if (memory[csv->offset] == '\n') {
+            break;
         }
     }
-    return nobjs;
 }
 
-struct object *get_csv_objects(struct file_contents *csv)
+static void get_line(struct file_contents *csv, char *str)
 {
-    struct object *objects;
-    u32 nobjs = get_num_objs(csv);
+    char *memory = csv->memory;
+    u32 start = csv->offset;
+    get_line_offset(csv);
+    u32 end = csv->offset;
 
-    if (!nobjs) {
+    memcpy(str, memory, (end - start));
+    str[end] = '\0';
+}
+
+static u32 get_num_objs(char *memory)
+{
+    u32 n, i = 0;
+    while (memory[i++]) {
+        if (memory[i] == '\n') {
+            n++;
+        }
+    }
+    return n;
+}
+
+struct object *get_csv_objects(struct file_contents *csvfc)
+{
+    u32 nobjs = get_num_objs((char *)csvfc->memory);
+    struct object *objs = malloc(sizeof(struct object) * nobjs);
+
+    if (!objs) {
         return NULL;
     }
 
-    objects = malloc(sizeof(struct object) * nobjs);
+    for (int i = 0; i < nobjs; i++) {
+        struct object *obj = &objs[i];
+        char *line = malloc(sizeof(char) * 1024);
+        char *token;
 
-    char token[32];
-    get_token(csv, token);
-    printf("%s\n", token);
-    printf("%c\n", ((char *)csv->memory)[csv->offset]);
+        get_line(csvfc, line);
+        printf("%s\n", line);
+#if 0
+        while ((token = strsep(&line, ","))) {
+            printf("%s\n", token);
+        }
+#endif
+        free(line);
+    }
 
-    return objects;
+    return objs;
 }

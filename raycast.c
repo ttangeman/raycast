@@ -41,6 +41,9 @@ int main(int argc, char **argv)
     fclose(input);
 
     struct object *objects = get_csv_objects(&fc);
+    if (!objects) {
+        die("Error: %s file in an invalid CSV format!", infn);
+    }
 
     free(objects);
     free(fc.memory);
