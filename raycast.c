@@ -52,14 +52,13 @@ static v3 plane_intersection_check(struct plane *plane, v3 ro, v3 rd)
  */
 void project_scene_on_image(struct scene *scene, struct pixmap image)
 {
-    // Only 1 camera is supported ATM
-    struct camera camera = scene->cameras[0];
-
-    if (!camera) {
+    if (!scene->cameras) {
         free(image.pixels);
         free_scene(scene);
         die("Error: no camera was defined by CSV file!");
     }
+    // Only 1 camera is supported ATM
+    struct camera camera = scene->cameras[0];
 
     float focal_point = 1; // meters
     float pixel_width = camera.width / image.width;
@@ -85,7 +84,7 @@ void project_scene_on_image(struct scene *scene, struct pixmap image)
             // Check for sphere intersections
             for (int sphere_index = 0; sphere_index < scene->num_spheres; sphere_index++) {
                 struct sphere *sphere = &scene->spheres[sphere_index];
-                sphere_intersection_check(plane, ro, rd);
+                //sphere_intersection_check(sphere, ro, rd);
             }
         }
     }

@@ -22,6 +22,6 @@ struct scene {
     struct plane *planes;
     struct camera *cameras;
     u32 num_spheres;
-    u31 num_planes;
+    u32 num_planes;
     u32 num_cameras;
 };
