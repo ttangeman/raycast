@@ -45,7 +45,7 @@ enum status_code {
  */
 typedef struct pixel pixel;
 struct pixel {
-    float r, g, b;
+    u8 r, g, b;
 };
 
 struct pixmap {

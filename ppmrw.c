@@ -181,11 +181,8 @@ static void handle_init_error_code(int error_code)
  */
 void write_ppm_header(struct ppm_pixmap pm, FILE *fh, u32 fmt)
 {
-    char magic[2];
-    magic[0] = 'P';
-    char format[2];
-    sprintf(format,"%d", fmt);
-    strcat(magic, format);
+    char magic[3];
+    sprintf(magic,"P%d", fmt);
 
     char width[32];
     char height[32];

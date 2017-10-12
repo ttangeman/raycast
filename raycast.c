@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 
 // Useful message and quit function
 static void die(const char *reason, ...)
@@ -29,20 +30,53 @@ void free_scene(struct scene *scene)
 static v3 plane_intersection_check(struct plane *plane, v3 ro, v3 rd)
 {
     float t;
-    v3 result;
     v3 plane_vec;
-    float dist, unit_dist;
+    float vo, vd;
 
-    v3_from_points(&plane_vec, (point)ro, (point)plane->pos);
-    dist = v3_dot(plane->norm, plane_vec);
-    unit_dist = v3_dot(plane->norm, rd);
+    //v3_from_points(&plane_vec, (point)ro, (point)plane->pos);
+    v3_add(&plane_vec, ro, plane->pos);
+    vo = -(v3_dot(plane->norm, plane_vec));
+    vd = v3_dot(plane->norm, rd);
 
-    t = dist / unit_dist;
-    result.x = ro.x + rd.x*t;
-    result.y = ro.y + rd.y*t;
-    result.z = ro.z + rd.z*t;
+    t = vo / vd;
+
+    if (t < 0) {
+        return NULL;
+    }
+
+    v3 result = {0};
+    result.x = ro.x - rd.x*t;
+    result.y = ro.y - rd.y*t;
+    result.z = ro.z - rd.z*t;
 
     return result;
+}
+
+static bool sphere_intersection_check(struct sphere *sphere, v3 ro, v3 rd)
+{
+    float b = 2 * (rd.x * (ro.x - sphere->pos.x) +
+                   rd.y * (ro.y - sphere->pos.y) +
+                   rd.z * (ro.z - sphere->pos.z));
+    float c = (ro.x - sphere->pos.x)*(ro.x - sphere->pos.x) +
+              (ro.y - sphere->pos.y)*(ro.y - sphere->pos.y) +
+              (ro.z - sphere->pos.z)*(ro.z - sphere->pos.z) + sphere->rad;
+    float disc = (b*b - 4*c);
+
+    if (disc < 0) {
+        return false;
+    }
+
+    disc = sqrt(disc);
+    float t0 = (-b - disc) / 2;
+    float t1 = (-b + disc) / 2;
+
+    if (t0 < 0) {
+        return false;
+    } else if (t1 < 0) {
+        return false;
+    } else {
+        return true;
+    }
 }
 
 /*
@@ -79,12 +113,17 @@ void project_scene_on_image(struct scene *scene, struct pixmap image)
             // Check for plane intersections
             for (int plane_index = 0; plane_index < scene->num_planes; plane_index++) {
                 struct plane *plane = &scene->planes[plane_index];
-                plane_intersection_check(plane, ro, rd);
+                v3 hit = plane_intersection_check(plane, ro, rd);
+                if (hit) {
+                    image.pixels[i * image.width + j] = plane->color;
+                }
             }
             // Check for sphere intersections
             for (int sphere_index = 0; sphere_index < scene->num_spheres; sphere_index++) {
                 struct sphere *sphere = &scene->spheres[sphere_index];
-                //sphere_intersection_check(sphere, ro, rd);
+                if(sphere_intersection_check(sphere, ro, rd)) {
+                    image.pixels[i * image.width + j] = sphere->color;
+                }
             }
         }
     }
@@ -124,6 +163,18 @@ int main(int argc, char **argv)
 
     project_scene_on_image(scene, image);
 
+    struct ppm_pixmap pm = {0};
+    pm.format = P3_PPM;
+    pm.width = image.width;
+    pm.height = image.height;
+    pm.maxval = 255;
+    pm.pixmap = image.pixels;
+
+    output = fopen(outfn, "w");
+    write_ppm_header(pm, output, P6_PPM);
+    write_p6_pixmap(pm, output);
+
+    fclose(output);
     free(image.pixels);
     free_scene(scene);
     return 0;

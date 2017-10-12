@@ -78,9 +78,9 @@ static void init_plane_object(struct object *obj, char *line)
             char *btemp = strsep(&line, ",");
             char *b = strsep(&btemp, "]");
 
-            color.r = atof(r);
-            color.g = atof(g);
-            color.b = atof(b);
+            color.r = (u8)(atof(r) * 255);
+            color.g = (u8)(atof(g) * 255);
+            color.b = (u8)(atof(b) * 255);
         } else if (strlcmp(token, "position")) {
             // the brackets are omitted form x and z
             char *xtemp = strsep(&line, ",");
@@ -126,9 +126,9 @@ static void init_sphere_object(struct object *obj, char *line)
             char *btemp = strsep(&line, ",");
             char *b = strsep(&btemp, "]");
 
-            color.r = atof(r);
-            color.g = atof(g);
-            color.b = atof(b);
+            color.r = (u8)(atof(r) * 255);
+            color.g = (u8)(atof(g) * 255);
+            color.b = (u8)(atof(b) * 255);
         } else if (strlcmp(token, "position")) {
             // the brackets are omitted form x and z
             char *xtemp = strsep(&line, ",");
