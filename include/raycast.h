@@ -14,5 +14,5 @@ struct plane {
 };
 
 struct camera {
-    u32 width, height;
+    float width, height;
 };

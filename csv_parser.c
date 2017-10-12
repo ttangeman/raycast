@@ -35,21 +35,47 @@ static u32 get_num_objs(char *memory, size_t size)
     return n;
 }
 
-#define strlcmp(str, strlit) strncmp(str, strlit, sizeof(strlit))
+#define strlcmp(str, strlit) (strncmp(str, strlit, sizeof(strlit)) == 0)
 
-static void parse_token(struct object *obj, char *line, char *token)
+static void init_camera_object(struct object *obj, char *line)
 {
-    if (strlcmp(token, "color")) {
+    float w, h;
+    char *token = strsep(&line, ":");
 
+    if (strlcmp(token, "width")) {
+        char *width = strsep(&line, ",");
+        w = atof(width);
+
+        token = strsep(&line, ":");
+        char *height = strsep(&line, ",");
+        h = atof(height);
+    } else if (strlcmp(token, "height")) {
+        char *height = strsep(&line, ",");
+        h = atof(height);
+
+        token = strsep(&line, ":");
+        char *width = strsep(&line, ",");
+        w = atof(width);
     }
+
+    obj->type = OBJ_CAMERA;
+    obj->camera.width = w;
+    obj->camera.height = h;
+}
+
+static void init_sphere_object(struct object *obj, char *line)
+{
+    struct pixel color;
+    v3 pos, norm;
 }
 
 static void parse_line(struct object *obj, char *line)
 {
     char *type = strsep(&line, ",");
     if (strlcmp(type, "camera")) {
-        char *token = strsep(&line, ":");
-        parse_token(obj, line, token);
+        init_camera_object(obj, line);
+    } else if (strlcmp(type, "sphere")) {
+        init_sphere_object(obj, line);
     }
 }
 
