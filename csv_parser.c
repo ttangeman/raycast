@@ -35,6 +35,24 @@ static u32 get_num_objs(char *memory, size_t size)
     return n;
 }
 
+#define strlcmp(str, strlit) strncmp(str, strlit, sizeof(strlit))
+
+static void parse_token(struct object *obj, char *line, char *token)
+{
+    if (strlcmp(token, "color")) {
+
+    }
+}
+
+static void parse_line(struct object *obj, char *line)
+{
+    char *type = strsep(&line, ",");
+    if (strlcmp(type, "camera")) {
+        char *token = strsep(&line, ":");
+        parse_token(obj, line, token);
+    }
+}
+
 struct object *get_csv_objects(struct file_contents *csvfc)
 {
     u32 nobjs = get_num_objs((char *)csvfc->memory, csvfc->size);
@@ -47,15 +65,10 @@ struct object *get_csv_objects(struct file_contents *csvfc)
     for (int i = 0; i < nobjs; i++) {
         struct object *obj = &objs[i];
         char *line = malloc(sizeof(char) * 1024);
-        char *token;
 
         get_line(csvfc, line);
-        printf("%s\n\n", line);
-#if 0
-        while ((token = strsep(&line, ","))) {
-            printf("%s\n", token);
-        }
-#endif
+        parse_line(obj, line);
+
         free(line);
     }
 
