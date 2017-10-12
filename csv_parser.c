@@ -63,10 +63,45 @@ static void init_camera_object(struct object *obj, char *line)
     obj->camera.height = h;
 }
 
-static void init_sphere_object(struct object *obj, char *line)
+static void init_plane_object(struct object *obj, char *line)
 {
-    struct pixel color;
+    pixel color;
     v3 pos, norm;
+    char *token;
+
+    while((token = strsep(&line, ":")) != NULL) {
+        if (strlcmp(token, "color")) {
+            // the brackets are omitted form r and b
+            char *r = &strsep(&line, ",")[1];
+            char *g = strsep(&line, ",");
+            char *btemp = strsep(&line, ",");
+            char *b = strsep(&btemp, "]");
+
+            color.r = atof(r);
+            color.g = atof(g);
+            color.b = atof(b);
+        } else if (strlcmp(token, "position")) {
+            // the brackets are omitted form x and z
+            char *x = &strsep(&line, ",")[1];
+            char *y = strsep(&line, ",");
+            char *ztemp = strsep(&line, ",");
+            char *z = strsep(&ztemp, "]");
+
+            pos.x = atof(x);
+            pos.y = atof(y);
+            pos.z = atof(z);
+        } else if (strlcmp (token, "normal")) {
+            char *x = &strsep(&line, ",")[1];
+            char *y = strsep(&line, ",");
+            char *ztemp = strsep(&line, ",");
+            char *z = strsep(&ztemp, "]");
+
+            norm.x = atof(x);
+            norm.y = atof(y);
+            norm.z = atof(z);
+        }
+    }
+
 }
 
 static void parse_line(struct object *obj, char *line)
@@ -74,8 +109,8 @@ static void parse_line(struct object *obj, char *line)
     char *type = strsep(&line, ",");
     if (strlcmp(type, "camera")) {
         init_camera_object(obj, line);
-    } else if (strlcmp(type, "sphere")) {
-        init_sphere_object(obj, line);
+    } else if (strlcmp(type, "plane")) {
+        init_plane_object(obj, line);
     }
 }
 

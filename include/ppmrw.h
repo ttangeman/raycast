@@ -43,6 +43,7 @@ enum status_code {
  * Struct definitions
  * ==================
  */
+typedef struct pixel pixel;
 struct pixel {
     u8 r, g, b;
 };
