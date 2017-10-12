@@ -101,7 +101,50 @@ static void init_plane_object(struct object *obj, char *line)
             norm.z = atof(z);
         }
     }
+    obj->type = OBJ_PLANE;
+    obj->plane.color = color;
+    obj->plane.pos = pos;
+    obj->plane.norm = norm;
+}
 
+static void init_sphere_object(struct object *obj, char *line)
+{
+    pixel color;
+    float radius;
+    v3 pos;
+    char *token;
+
+    while((token = strsep(&line, ":")) != NULL) {
+        if (strlcmp(token, "color")) {
+            // the brackets are omitted form r and b
+            char *r = &strsep(&line, ",")[1];
+            char *g = strsep(&line, ",");
+            char *btemp = strsep(&line, ",");
+            char *b = strsep(&btemp, "]");
+
+            color.r = atof(r);
+            color.g = atof(g);
+            color.b = atof(b);
+        } else if (strlcmp(token, "position")) {
+            // the brackets are omitted form x and z
+            char *x = &strsep(&line, ",")[1];
+            char *y = strsep(&line, ",");
+            char *ztemp = strsep(&line, ",");
+            char *z = strsep(&ztemp, "]");
+
+            pos.x = atof(x);
+            pos.y = atof(y);
+            pos.z = atof(z);
+        } else if (strlcmp (token, "radius")) {
+            char *arad = strsep(&line, ",");
+            radius = atof(arad);
+        }
+    }
+
+    obj->type = OBJ_SPHERE;
+    obj->sphere.color = color;
+    obj->sphere.pos = pos;
+    obj->sphere.rad = radius;
 }
 
 static void parse_line(struct object *obj, char *line)
@@ -111,6 +154,8 @@ static void parse_line(struct object *obj, char *line)
         init_camera_object(obj, line);
     } else if (strlcmp(type, "plane")) {
         init_plane_object(obj, line);
+    } else if (strlcmp(type, "sphere")) {
+        init_sphere_object(obj, line);
     }
 }
 
@@ -132,6 +177,5 @@ struct object *get_csv_objects(struct file_contents *csvfc)
 
         free(line);
     }
-
     return objs;
 }

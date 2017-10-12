@@ -5,7 +5,7 @@
 struct sphere {
     pixel color;
     v3 pos;
-    u32 rad;
+    float rad;
 };
 
 struct plane {

@@ -45,12 +45,12 @@ enum status_code {
  */
 typedef struct pixel pixel;
 struct pixel {
-    u8 r, g, b;
+    float r, g, b;
 };
 
 struct pixmap {
     u32 width, height;
-    struct pixel *pixmap;
+    pixel *pixmap;
 };
 
 struct ppm_pixmap {
