@@ -6,8 +6,8 @@
 static void get_line_offset(struct file_contents *csv)
 {
     char *memory = (char *)csv->memory;
-    while (memory[csv->offset++]) {
-        if (memory[csv->offset] == '\n') {
+    while (true) {
+        if (memory[csv->offset++] == '\n') {
             break;
         }
     }
@@ -20,14 +20,14 @@ static void get_line(struct file_contents *csv, char *str)
     get_line_offset(csv);
     u32 end = csv->offset;
 
-    memcpy(str, memory, (end - start));
+    memcpy(str, &memory[start], (end - start));
     str[end] = '\0';
 }
 
-static u32 get_num_objs(char *memory)
+static u32 get_num_objs(char *memory, size_t size)
 {
-    u32 n, i = 0;
-    while (memory[i++]) {
+    u32 n = 0;
+    for (int i = 0; i < size; i++) {
         if (memory[i] == '\n') {
             n++;
         }
@@ -37,7 +37,7 @@ static u32 get_num_objs(char *memory)
 
 struct object *get_csv_objects(struct file_contents *csvfc)
 {
-    u32 nobjs = get_num_objs((char *)csvfc->memory);
+    u32 nobjs = get_num_objs((char *)csvfc->memory, csvfc->size);
     struct object *objs = malloc(sizeof(struct object) * nobjs);
 
     if (!objs) {
@@ -50,7 +50,7 @@ struct object *get_csv_objects(struct file_contents *csvfc)
         char *token;
 
         get_line(csvfc, line);
-        printf("%s\n", line);
+        printf("%s\n\n", line);
 #if 0
         while ((token = strsep(&line, ","))) {
             printf("%s\n", token);
