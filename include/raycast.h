@@ -22,10 +22,6 @@ struct scene {
     struct plane *planes;
     struct camera *cameras;
     u32 num_spheres;
-    u32 num_planes;
+    u31 num_planes;
     u32 num_cameras;
-    u32 world_width;
-    u32 world_height;
-    u32 res_width;
-    u32 res_height;
 };
