@@ -159,9 +159,8 @@ static void parse_line(struct object *obj, char *line)
     }
 }
 
-struct object *get_csv_objects(struct file_contents *csvfc)
+static struct object *get_csv_objects(struct file_contents *csvfc, u32 nobjs)
 {
-    u32 nobjs = get_num_objs((char *)csvfc->memory, csvfc->size);
     struct object *objs = malloc(sizeof(struct object) * nobjs);
 
     if (!objs) {
@@ -178,4 +177,71 @@ struct object *get_csv_objects(struct file_contents *csvfc)
         free(line);
     }
     return objs;
+}
+
+struct scene *construct_scene(struct file_contents *csvfc)
+{
+    u32 nobjs = get_num_objs((char *)csvfc->memory, csvfc->size);
+
+    struct scene *result = malloc(sizeof(struct scene));
+    struct object *objs = get_csv_objects(csvfc, nobjs);
+
+    if (!objs) {
+        return NULL;
+    }
+
+    struct camera *cameras;
+    struct plane *planes;
+    struct sphere *spheres;
+    u32 num_cameras = 0;
+    u32 num_planes = 0;
+    u32 num_spheres = 0;
+
+    for (int i = 0; i < nobjs; i++) {
+        struct object *obj = &objs[i];
+        if (obj->type == OBJ_CAMERA) {
+            num_cameras++;
+        } else if (obj->type == OBJ_PLANE) {
+            num_planes++;
+        } else if (obj->type == OBJ_SPHERE) {
+            num_spheres++;
+        }
+    }
+
+    cameras = malloc(sizeof(struct camera) * num_cameras);
+    planes = malloc(sizeof(struct plane) * num_planes);
+    spheres = malloc(sizeof(struct sphere) * num_spheres);
+
+    u32 camera_index = 0;
+    u32 plane_index = 0;
+    u32 sphere_index = 0;
+
+    for (int i = 0; i < nobjs; i++) {
+        struct object *obj = &objs[i];
+        if (obj->type == OBJ_CAMERA) {
+            struct camera *cam = &cameras[camera_index++];
+            cam->width = obj->camera.width;
+            cam->height = obj->camera.height;
+        } else if (obj->type == OBJ_PLANE) {
+            struct plane *plane = &planes[plane_index++];
+            plane->color = obj->plane.color;
+            plane->pos = obj->plane.pos;
+            plane->norm = obj->plane.norm;
+        } else if (obj->type == OBJ_SPHERE) {
+            struct sphere *sphere = &spheres[sphere_index++];
+            sphere->color = obj->sphere.color;
+            sphere->pos = obj->sphere.pos;
+            sphere->rad = obj->sphere.rad;
+        }
+    }
+
+    result->spheres = spheres;
+    result->planes = planes;
+    result->cameras = cameras;
+    result->num_spheres = num_spheres;
+    result->num_planes = num_planes;
+    result->num_cameras = num_cameras;
+
+    free(objs);
+    return result;
 }

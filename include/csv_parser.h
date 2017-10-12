@@ -19,4 +19,5 @@ struct object {
     };
 };
 
-struct object *get_csv_objects(struct file_contents *csv);
+struct scene *construct_scene(struct file_contents *csvfc);
+

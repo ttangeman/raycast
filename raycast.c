@@ -16,6 +16,14 @@ static void die(const char *reason, ...)
     exit(EXIT_FAILURE);
 }
 
+static inline void free_scene(struct scene *scene)
+{
+    free(scene->spheres);
+    free(scene->planes);
+    free(scene->cameras);
+    free(scene);
+}
+
 int main(int argc, char **argv)
 {
     if (argc != 5) {
@@ -40,12 +48,9 @@ int main(int argc, char **argv)
     struct file_contents fc = get_file_contents(input);
     fclose(input);
 
-    struct object *objects = get_csv_objects(&fc);
-    if (!objects) {
-        die("Error: %s file in an invalid CSV format!", infn);
-    }
-
-    free(objects);
+    struct scene *scene = construct_scene(fc);
     free(fc.memory);
+
+    free_scene(scene);
     return 0;
 }
