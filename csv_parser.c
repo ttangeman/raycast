@@ -72,7 +72,8 @@ static void init_plane_object(struct object *obj, char *line)
     while((token = strsep(&line, ":")) != NULL) {
         if (strlcmp(token, "color")) {
             // the brackets are omitted form r and b
-            char *r = &strsep(&line, ",")[1];
+            char *rtemp = strsep(&line, ",");
+            char *r = &rtemp[1];
             char *g = strsep(&line, ",");
             char *btemp = strsep(&line, ",");
             char *b = strsep(&btemp, "]");
@@ -82,7 +83,8 @@ static void init_plane_object(struct object *obj, char *line)
             color.b = atof(b);
         } else if (strlcmp(token, "position")) {
             // the brackets are omitted form x and z
-            char *x = &strsep(&line, ",")[1];
+            char *xtemp = strsep(&line, ",");
+            char *x = &xtemp[1];
             char *y = strsep(&line, ",");
             char *ztemp = strsep(&line, ",");
             char *z = strsep(&ztemp, "]");
@@ -91,7 +93,8 @@ static void init_plane_object(struct object *obj, char *line)
             pos.y = atof(y);
             pos.z = atof(z);
         } else if (strlcmp (token, "normal")) {
-            char *x = &strsep(&line, ",")[1];
+            char *xtemp = strsep(&line, ",");
+            char *x = &xtemp[1];
             char *y = strsep(&line, ",");
             char *ztemp = strsep(&line, ",");
             char *z = strsep(&ztemp, "]");
@@ -117,7 +120,8 @@ static void init_sphere_object(struct object *obj, char *line)
     while((token = strsep(&line, ":")) != NULL) {
         if (strlcmp(token, "color")) {
             // the brackets are omitted form r and b
-            char *r = &strsep(&line, ",")[1];
+            char *rtemp = strsep(&line, ",");
+            char *r = &rtemp[1];
             char *g = strsep(&line, ",");
             char *btemp = strsep(&line, ",");
             char *b = strsep(&btemp, "]");
@@ -127,7 +131,8 @@ static void init_sphere_object(struct object *obj, char *line)
             color.b = atof(b);
         } else if (strlcmp(token, "position")) {
             // the brackets are omitted form x and z
-            char *x = &strsep(&line, ",")[1];
+            char *xtemp = strsep(&line, ",");
+            char *x = &xtemp[1];
             char *y = strsep(&line, ",");
             char *ztemp = strsep(&line, ",");
             char *z = strsep(&ztemp, "]");

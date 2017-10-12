@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-std=c99 -Iinclude
+CFLAGS=-std=gnu99 -Iinclude
 LDFLAGS=-lm
 
 SRC=$(wildcard *.c)
