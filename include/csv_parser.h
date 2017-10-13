@@ -19,5 +19,5 @@ struct object {
     };
 };
 
-struct scene *construct_scene(struct file_contents *csvfc);
+void construct_scene(struct file_contents *csvfc, struct scene *scene);
 

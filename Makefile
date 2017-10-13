@@ -8,6 +8,7 @@ OBJS=$(SRC:.c=.o)
 .all: raycast
 
 raycast: $(OBJS)
+	$(CC) $(OBJS) -o raycast $(LDFLAGS)
 
 clean:
 	rm -rf $(OBJS) raycast

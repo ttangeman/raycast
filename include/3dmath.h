@@ -6,17 +6,17 @@ typedef struct v3 v3;
 typedef struct v3 point;
 
 struct v3 {
-    float x, y, z;
+    double x, y, z;
 };
 
-static inline float v3_magnitude(v3 vec)
+static inline double v3_magnitude(v3 vec)
 {
     return sqrt(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z);
 }
 
 static inline void v3_normalize(v3 *result, v3 vec)
 {
-    float mag = v3_magnitude(vec);
+    double mag = v3_magnitude(vec);
     result->x = vec.x / mag;
     result->y = vec.y / mag;
     result->z = vec.z / mag;
@@ -41,14 +41,14 @@ static inline void v3_from_points(v3 *result, point a, point b)
     v3_sub(result, b, a);
 }
 
-static inline void v3_scale(v3 *result, v3 vec, float scale)
+static inline void v3_scale(v3 *result, v3 vec, double scale)
 {
     result->x = vec.x * scale;
     result->y = vec.y * scale;
     result->z = vec.z * scale;
 }
 
-static inline float v3_dot(v3 a, v3 b)
+static inline double v3_dot(v3 a, v3 b)
 {
     return (a.x*b.x + a.y*b.y + a.z*b.z);
 }

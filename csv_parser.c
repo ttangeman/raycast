@@ -68,7 +68,6 @@ static void init_plane_object(struct object *obj, char *line)
     pixel color;
     v3 pos, norm;
     char *token;
-
     while((token = strsep(&line, ":")) != NULL) {
         if (strlcmp(token, "color")) {
             // the brackets are omitted form r and b
@@ -184,16 +183,11 @@ static struct object *get_csv_objects(struct file_contents *csvfc, u32 nobjs)
     return objs;
 }
 
-struct scene *construct_scene(struct file_contents *csvfc)
+void construct_scene(struct file_contents *csvfc, struct scene *scene)
 {
     u32 nobjs = get_num_objs((char *)csvfc->memory, csvfc->size);
 
-    struct scene *result = malloc(sizeof(struct scene));
     struct object *objs = get_csv_objects(csvfc, nobjs);
-
-    if (!objs) {
-        return NULL;
-    }
 
     struct camera *cameras;
     struct plane *planes;
@@ -240,13 +234,12 @@ struct scene *construct_scene(struct file_contents *csvfc)
         }
     }
 
-    result->spheres = spheres;
-    result->planes = planes;
-    result->cameras = cameras;
-    result->num_spheres = num_spheres;
-    result->num_planes = num_planes;
-    result->num_cameras = num_cameras;
+    scene->spheres = spheres;
+    scene->planes = planes;
+    scene->cameras = cameras;
+    scene->num_spheres = num_spheres;
+    scene->num_planes = num_planes;
+    scene->num_cameras = num_cameras;
 
     free(objs);
-    return result;
 }

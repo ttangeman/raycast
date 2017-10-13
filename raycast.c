@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include <math.h>
 
 // Useful message and quit function
 static void die(const char *reason, ...)
@@ -27,106 +28,102 @@ void free_scene(struct scene *scene)
     free(scene);
 }
 
-static v3 plane_intersection_check(struct plane *plane, v3 ro, v3 rd)
+static double sphere_intersection_check(struct sphere *sphere, v3 ro, v3 rd)
 {
-    float t;
-    v3 plane_vec;
-    float vo, vd;
+    v3 sphere_vec;
+    v3_sub(&sphere_vec, ro, sphere->pos);
 
-    //v3_from_points(&plane_vec, (point)ro, (point)plane->pos);
-    v3_add(&plane_vec, ro, plane->pos);
-    vo = -(v3_dot(plane->norm, plane_vec));
-    vd = v3_dot(plane->norm, rd);
+    double b = 2 * (rd.x * sphere_vec.x + rd.y * sphere_vec.y + rd.z * sphere_vec.z);
+    double c = sphere_vec.x*sphere_vec.x + sphere_vec.y*sphere_vec.y +
+               sphere_vec.z*sphere_vec.z - sphere->rad*sphere->rad;
 
-    t = vo / vd;
-
-    if (t < 0) {
-        return NULL;
-    }
-
-    v3 result = {0};
-    result.x = ro.x - rd.x*t;
-    result.y = ro.y - rd.y*t;
-    result.z = ro.z - rd.z*t;
-
-    return result;
-}
-
-static bool sphere_intersection_check(struct sphere *sphere, v3 ro, v3 rd)
-{
-    float b = 2 * (rd.x * (ro.x - sphere->pos.x) +
-                   rd.y * (ro.y - sphere->pos.y) +
-                   rd.z * (ro.z - sphere->pos.z));
-    float c = (ro.x - sphere->pos.x)*(ro.x - sphere->pos.x) +
-              (ro.y - sphere->pos.y)*(ro.y - sphere->pos.y) +
-              (ro.z - sphere->pos.z)*(ro.z - sphere->pos.z) + sphere->rad;
-    float disc = (b*b - 4*c);
+    double disc = b*b - 4*c;
 
     if (disc < 0) {
-        return false;
+        return -1;
     }
 
-    disc = sqrt(disc);
-    float t0 = (-b - disc) / 2;
-    float t1 = (-b + disc) / 2;
+    double sqrt_disc = sqrt(disc);
+    double t0 = (-b - sqrt_disc) / 2;
+    double t1 = (-b + sqrt_disc) / 2;
 
     if (t0 < 0) {
-        return false;
-    } else if (t1 < 0) {
-        return false;
+        if(t1 < 0) {
+            return -1;
+        } else {
+            return t1;
+        }
     } else {
-        return true;
+        return t1;
     }
 }
 
-/*
- * This hhe main raycasting function.
- * It evaulates a ray through each pixel and checks for intersections
- * If there is an intersection, that pixel is colored with the color of the object hit.
- */
+double plane_intersection_check(struct plane *plane, v3 ro, v3 rd)
+{
+    v3 norm = plane->norm;
+    v3 pos = plane->pos;
+    v3 plane_vec;
+
+    v3_sub(&plane_vec, pos, ro);
+    double vo = v3_dot(plane_vec, norm);
+    double vd = v3_dot(norm, rd);
+
+    if (vd > 0) {
+        return -1;
+    }
+
+    double t = vo / vd;
+
+    if (t < 0) {
+        return -1;
+    }
+
+    return t;
+}
+
 void project_scene_on_image(struct scene *scene, struct pixmap image)
 {
     if (!scene->cameras) {
         free(image.pixels);
         free_scene(scene);
-        die("Error: no camera was defined by CSV file!");
+        die("Error: no camera was defined by the CSV file!");
     }
     // Only 1 camera is supported ATM
     struct camera camera = scene->cameras[0];
+    double pixel_width = camera.width / image.width;
+    double pixel_height = camera.height / image.height;
 
-    float focal_point = 1; // meters
-    float pixel_width = camera.width / image.width;
-    float pixel_height = camera.height / image.height;
-    v3 center = {0, 0, -focal_point}; // center of the view plane
-    v3 p = {0, 0, center.z};
+    v3 center = {0, 0, -1};
     v3 ro = {0};
     v3 rd = {0};
+    v3 p = {0};
 
-    // The reading does column major but row major is far more cache efficient
-    for (int i = 0; i < image.width; i++) {
-        p.x = center.x + camera.width * 0.5 + pixel_width * (i + 0.5);
-        for (int j = 0; j < image.height; j++) {
-            p.y = center.y + camera.height * 0.5 + pixel_height * (j + 0.5);
-            // Store normalized p in Rd
+    for (int i = 0; i < image.height; i++) {
+        for (int j = 0; j < image.width; j++) {
+            p.x = center.x - camera.width*0.5 + pixel_width * (j + 0.5);
+            p.y = -(center.y - camera.height*0.5 + pixel_height * (i + 0.5));
+            p.z = center.z;
             v3_normalize(&rd, p);
 
             // Check for plane intersections
             for (int plane_index = 0; plane_index < scene->num_planes; plane_index++) {
                 struct plane *plane = &scene->planes[plane_index];
-                v3 hit = plane_intersection_check(plane, ro, rd);
-                if (hit) {
+                double t = plane_intersection_check(plane, ro, rd);
+                if (t > 0) {
                     image.pixels[i * image.width + j] = plane->color;
                 }
             }
             // Check for sphere intersections
             for (int sphere_index = 0; sphere_index < scene->num_spheres; sphere_index++) {
                 struct sphere *sphere = &scene->spheres[sphere_index];
-                if(sphere_intersection_check(sphere, ro, rd)) {
+                double t = sphere_intersection_check(sphere, ro, rd);
+                if (t > 0) {
                     image.pixels[i * image.width + j] = sphere->color;
                 }
             }
         }
     }
+
 }
 
 int main(int argc, char **argv)
@@ -153,7 +150,8 @@ int main(int argc, char **argv)
     struct file_contents fc = get_file_contents(input);
     fclose(input);
 
-    struct scene *scene = construct_scene(&fc);
+    struct scene *scene = malloc(sizeof(struct scene));
+    construct_scene(&fc, scene);
     free(fc.memory);
 
     struct pixmap image = {0};
