@@ -58,7 +58,7 @@ static double sphere_intersection_check(struct sphere *sphere, v3 ro, v3 rd)
             return t1;
         }
     } else {
-        return t1;
+        return t0;
     }
 }
 
