@@ -28,8 +28,10 @@ void free_scene(struct scene *scene)
     free(scene);
 }
 
+// Checks the spheres for intersection
 static double sphere_intersection_check(struct sphere *sphere, v3 ro, v3 rd)
 {
+    // This vector represents the vector from the origin to the sphere
     v3 sphere_vec;
     v3_sub(&sphere_vec, ro, sphere->pos);
 
@@ -44,6 +46,8 @@ static double sphere_intersection_check(struct sphere *sphere, v3 ro, v3 rd)
     }
 
     double sqrt_disc = sqrt(disc);
+    // neither t0 or t1 can be < 0
+    // also t0 will always be the closest point because it does the "-"
     double t0 = (-b - sqrt_disc) / 2;
     double t1 = (-b + sqrt_disc) / 2;
 
@@ -58,10 +62,12 @@ static double sphere_intersection_check(struct sphere *sphere, v3 ro, v3 rd)
     }
 }
 
+// Checks planes for intersection
 double plane_intersection_check(struct plane *plane, v3 ro, v3 rd)
 {
     v3 norm = plane->norm;
     v3 pos = plane->pos;
+    // This vector represents the vector from the origin to the plane
     v3 plane_vec;
 
     v3_sub(&plane_vec, pos, ro);
@@ -72,6 +78,7 @@ double plane_intersection_check(struct plane *plane, v3 ro, v3 rd)
         return -1;
     }
 
+    // do I need to negate here? doesn't seem like it...
     double t = vo / vd;
 
     if (t < 0) {
@@ -92,8 +99,10 @@ void project_scene_on_image(struct scene *scene, struct pixmap image)
     struct camera camera = scene->cameras[0];
     double pixel_width = camera.width / image.width;
     double pixel_height = camera.height / image.height;
+    // I'm not sure if this is supposed to be negative or not...
+    double focal_point = -1;
 
-    v3 center = {0, 0, -1};
+    v3 center = {0, 0, focal_point};
     v3 ro = {0};
     v3 rd = {0};
     v3 p = {0};
@@ -159,10 +168,11 @@ int main(int argc, char **argv)
     image.height = height;
     image.pixels = malloc(sizeof(pixel) * width * height);
 
+    // This gets us a pixmap populated with all the colored pixels
     project_scene_on_image(scene, image);
 
     struct ppm_pixmap pm = {0};
-    pm.format = P3_PPM;
+    pm.format = P6_PPM;
     pm.width = image.width;
     pm.height = image.height;
     pm.maxval = 255;

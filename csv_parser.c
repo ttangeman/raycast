@@ -171,6 +171,8 @@ static struct object *get_csv_objects(struct file_contents *csvfc, u32 nobjs)
         return NULL;
     }
 
+    // Iterate over the number of lines and parse each of them
+    // Each line contains ONLY 1 object!
     for (int i = 0; i < nobjs; i++) {
         struct object *obj = &objs[i];
         char *line = malloc(sizeof(char) * 1024);
@@ -183,6 +185,8 @@ static struct object *get_csv_objects(struct file_contents *csvfc, u32 nobjs)
     return objs;
 }
 
+// Simply takes each individual object from the object array and constructs
+// 3 arrays of cameras, spheres, and planes
 void construct_scene(struct file_contents *csvfc, struct scene *scene)
 {
     u32 nobjs = get_num_objs((char *)csvfc->memory, csvfc->size);
