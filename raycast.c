@@ -119,7 +119,9 @@ void project_scene_on_image(struct scene *scene, struct pixmap image)
                 struct plane *plane = &scene->planes[plane_index];
                 double t = plane_intersection_check(plane, ro, rd);
                 if (t > 0) {
-                    image.pixels[i * image.width + j] = plane->color;
+                    image.pixels[i * image.width + j].r = 255 * clamp01(plane->color.r);
+                    image.pixels[i * image.width + j].g = 255 * clamp01(plane->color.g);
+                    image.pixels[i * image.width + j].b = 255 * clamp01(plane->color.b);
                 }
             }
             // Check for sphere intersections
@@ -127,7 +129,9 @@ void project_scene_on_image(struct scene *scene, struct pixmap image)
                 struct sphere *sphere = &scene->spheres[sphere_index];
                 double t = sphere_intersection_check(sphere, ro, rd);
                 if (t > 0) {
-                    image.pixels[i * image.width + j] = sphere->color;
+                    image.pixels[i * image.width + j].r = 255 * clamp01(sphere->color.r);
+                    image.pixels[i * image.width + j].g = 255 * clamp01(sphere->color.g);
+                    image.pixels[i * image.width + j].b = 255 * clamp01(sphere->color.b);
                 }
             }
         }

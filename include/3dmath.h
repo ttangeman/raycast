@@ -2,6 +2,30 @@
 
 #include <math.h>
 
+/*
+ * General math
+ * ===================
+ */
+
+static inline double clamp(double value, double min, double max)
+{
+    if (value < min) {
+        value = min;
+    } else if (value > max) {
+        value = max;
+    }
+    return value;
+}
+
+static inline double clamp01(double value)
+{
+    return clamp(value, 0, 1);
+}
+
+/*
+ * 3D Vector math
+ * ====================
+ */
 typedef struct v3 v3;
 typedef struct v3 point;
 

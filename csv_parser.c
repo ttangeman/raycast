@@ -65,7 +65,7 @@ static void init_camera_object(struct object *obj, char *line)
 
 static void init_plane_object(struct object *obj, char *line)
 {
-    pixel color;
+    color3f color;
     v3 pos, norm;
     char *token;
     while((token = strsep(&line, ":")) != NULL) {
@@ -77,9 +77,9 @@ static void init_plane_object(struct object *obj, char *line)
             char *btemp = strsep(&line, ",");
             char *b = strsep(&btemp, "]");
 
-            color.r = (u8)(atof(r) * 255);
-            color.g = (u8)(atof(g) * 255);
-            color.b = (u8)(atof(b) * 255);
+            color.r = atof(r);
+            color.g = atof(g);
+            color.b = atof(b);
         } else if (strlcmp(token, "position")) {
             // the brackets are omitted form x and z
             char *xtemp = strsep(&line, ",");
@@ -111,7 +111,7 @@ static void init_plane_object(struct object *obj, char *line)
 
 static void init_sphere_object(struct object *obj, char *line)
 {
-    pixel color;
+    color3f color;
     float radius;
     v3 pos;
     char *token;
@@ -125,9 +125,9 @@ static void init_sphere_object(struct object *obj, char *line)
             char *btemp = strsep(&line, ",");
             char *b = strsep(&btemp, "]");
 
-            color.r = (u8)(atof(r) * 255);
-            color.g = (u8)(atof(g) * 255);
-            color.b = (u8)(atof(b) * 255);
+            color.r = atof(r);
+            color.g = atof(g);
+            color.b = atof(b);
         } else if (strlcmp(token, "position")) {
             // the brackets are omitted form x and z
             char *xtemp = strsep(&line, ",");

@@ -2,14 +2,19 @@
 
 #include "3dmath.h"
 
+typedef struct color3f color3f;
+struct color3f {
+    double r, g, b;
+};
+
 struct sphere {
-    pixel color;
+    color3f color;
     v3 pos;
     float rad;
 };
 
 struct plane {
-    pixel color;
+    color3f color;
     v3 pos, norm;
 };
 
