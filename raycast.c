@@ -183,7 +183,7 @@ int main(int argc, char **argv)
     pm.pixmap = image.pixels;
 
     output = fopen(outfn, "w");
-    write_ppm_header(pm, output, P6_PPM);
+    write_ppm_header(pm, output, pm.format);
     write_p6_pixmap(pm, output);
 
     fclose(output);
