@@ -10,7 +10,7 @@ struct color3f {
 struct sphere {
     color3f color;
     v3 pos;
-    float rad;
+    double rad;
 };
 
 struct plane {
@@ -19,7 +19,7 @@ struct plane {
 };
 
 struct camera {
-    float width, height;
+    double width, height;
 };
 
 struct scene {
