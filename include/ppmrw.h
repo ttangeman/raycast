@@ -54,10 +54,10 @@ struct pixmap {
 };
 
 struct ppm_pixmap {
-    enum ppm_format format;     // P3 or P6 for pixmaps
+    enum ppm_format format; // P3 or P6 for pixmaps
     u32 width, height;
-    u32 maxval;       // 0 to bits_per_channel for RGB
-    pixel *pixmap;       // NOTE: allocated during init, so needs to be freed
+    u32 maxval;             // 0 to bits_per_channel for RGB
+    pixel *pixmap;          // NOTE: allocated during init, so needs to be freed
 };
 
 struct file_contents {
@@ -71,7 +71,7 @@ struct file_contents {
  * ====================
  */
 struct file_contents get_file_contents(FILE *fh);
-int init_ppm_pixmap(struct ppm_pixmap *pm, struct file_contents fc);
+int init_ppm_pixmap(struct ppm_pixmap *pm, struct file_contents *fc);
 void write_ppm_header(struct ppm_pixmap pm, FILE *fh, u32 fmt);
 void write_p3_pixmap(struct ppm_pixmap pm, FILE *fh);
 void write_p6_pixmap(struct ppm_pixmap pm, FILE *fh);

@@ -35,18 +35,20 @@ struct file_contents get_file_contents(FILE *fh)
 /*
  * Wrapper function for advancing until a whitespace.
  */
-static void read_until_whitespace(char *ppm_memory, u32 *offset)
+static void read_until_whitespace(struct file_contents *fc)
 {
-    while (!isspace(ppm_memory[(*offset)++]));
+    char *ppm_memory = (char *)fc->memory;
+    while (!isspace(ppm_memory[fc->offset++]));
 }
 
 /*
  * Wrapper function for advancing through whitespace.
  */
-static void read_whitespace(char *ppm_memory, u32 *offset)
+static void read_whitespace(struct file_contents *fc)
 {
-    while (isspace(ppm_memory[*offset])) {
-        (*offset)++;
+    char *ppm_memory = (char *)fc->memory;
+    while (isspace(ppm_memory[fc->offset])) {
+        fc->offset++;
     }
 }
 
@@ -54,10 +56,11 @@ static void read_whitespace(char *ppm_memory, u32 *offset)
  * This function is a wrapper around the operation of advancing through all
  * comments until we hit the next line.
  */
-static void read_comments(char *ppm_memory, u32 *offset)
+static void read_comments(struct file_contents *fc)
 {
-    while (ppm_memory[*offset] == '#') {
-        while (ppm_memory[(*offset)++] != '\n');
+    char *ppm_memory = (char *)fc->memory;
+    while (ppm_memory[fc->offset] == '#') {
+        while (ppm_memory[(fc->offset)++] != '\n');
     }
 }
 
@@ -68,22 +71,22 @@ static void read_comments(char *ppm_memory, u32 *offset)
  * IMPORTANT: this function also handles the proceeding whitespaces and comments,
  * for ease of use.
  */
-static int get_binary_value(char *ppm_memory, u32 *offset_ptr)
+static int get_binary_value(struct file_contents *fc)
 {
     // Get the start of the string and the end of the string
-    u32 start = *offset_ptr;
-    read_until_whitespace(ppm_memory, offset_ptr);
-    u32 end = *offset_ptr;
+    u32 start = fc->offset;
+    read_until_whitespace(fc);
+    u32 end = fc->offset;
 
     // Allocate a string for the characters and copy the values from
     // memory. We also need to null terminate for atoi to work.
     char ascii[end - start];
-    strncpy(ascii, ppm_memory + start, end - start);
+    strncpy(ascii, fc->memory + start, end - start);
     ascii[end - start] = '\0';
 
     // Get us to the next value
-    read_whitespace(ppm_memory, offset_ptr);
-    read_comments(ppm_memory, offset_ptr);
+    read_whitespace(fc);
+    read_comments(fc);
 
     return atoi(ascii);
 }
@@ -96,10 +99,10 @@ static int get_binary_value(char *ppm_memory, u32 *offset_ptr)
  *
  * Returns a status code identifying the error.
  */
-int init_ppm_pixmap(struct ppm_pixmap *pm, struct file_contents fc)
+int init_ppm_pixmap(struct ppm_pixmap *pm, struct file_contents *fc)
 {
-    char *ascii_mem = (char *)fc.memory;
-    char magic[2] = {ascii_mem[0], ascii_mem[1]};
+    char *ascii_mem = (char *)fc->memory;
+    char magic[3] = {ascii_mem[0], ascii_mem[1], 0};
 
     if (strncmp(magic, "P3", sizeof("P3")) == 0) {
         pm->format = P3_PPM;
@@ -111,15 +114,15 @@ int init_ppm_pixmap(struct ppm_pixmap *pm, struct file_contents fc)
 
     u32 offset = 0;
 
-    read_until_whitespace(ascii_mem, &offset);
-    read_whitespace(ascii_mem, &offset);
-    read_comments(ascii_mem, &offset);
+    read_until_whitespace(fc);
+    read_whitespace(fc);
+    read_comments(fc);
 
     // Parse out the width, height, and bits per channel from the header
     // NOTE: these functions account for whitespace and comments!
-    s32 width = get_binary_value(ascii_mem, &offset);
-    s32 height = get_binary_value(ascii_mem, &offset);
-    s32 maxval = get_binary_value(ascii_mem, &offset);
+    s32 width = get_binary_value(fc);
+    s32 height = get_binary_value(fc);
+    s32 maxval = get_binary_value(fc);
 
     // Error checking for negative widths and heights
     // and maxval != 255
@@ -141,13 +144,13 @@ int init_ppm_pixmap(struct ppm_pixmap *pm, struct file_contents fc)
     if (pm->format == P3_PPM) {
         // Get the binary values of the ASCII pixels
         for (int i = 0; i < (width * height); i++) {
-            pixels[i].r = get_binary_value(ascii_mem, &offset);
-            pixels[i].g = get_binary_value(ascii_mem, &offset);
-            pixels[i].b = get_binary_value(ascii_mem, &offset);
+            pixels[i].r = get_binary_value(fc);
+            pixels[i].g = get_binary_value(fc);
+            pixels[i].b = get_binary_value(fc);
         }
     } else {
         // Cast the binary blob into a pixel array
-        memcpy(pm->pixmap, fc.memory + offset, sizeof(struct pixel) * width * height);
+        memcpy(pm->pixmap, fc->memory + offset, sizeof(struct pixel) * width * height);
     }
 
     return INIT_SUCCESS;
@@ -181,18 +184,7 @@ static void handle_init_error_code(int error_code)
  */
 void write_ppm_header(struct ppm_pixmap pm, FILE *fh, u32 fmt)
 {
-    char magic[3];
-    sprintf(magic,"P%d", fmt);
-
-    char width[32];
-    char height[32];
-    char maxval[32];
-    // This is the most portable way to do itoa
-    sprintf(width, "%d", pm.width);
-    sprintf(height, "%d", pm.height);
-    sprintf(maxval, "%d", pm.maxval);
-
-    fprintf(fh, "%s\n%s %s\n%s\n", magic, width, height, maxval);
+    fprintf(fh, "P%d\n%d %d\n%d\n", fmt, pm.width, pm.height, pm.maxval);
 }
 
 /*
@@ -201,16 +193,8 @@ void write_ppm_header(struct ppm_pixmap pm, FILE *fh, u32 fmt)
 void write_p3_pixmap(struct ppm_pixmap pm, FILE *fh)
 {
     u32 num_pixels = pm.width * pm.height;
-    char r[32];
-    char g[32];
-    char b[32];
-
     for (int i = 0; i < num_pixels; i++) {
-        sprintf(r, "%d", pm.pixmap[i].r);
-        sprintf(g, "%d", pm.pixmap[i].g);
-        sprintf(b, "%d", pm.pixmap[i].b);
-
-        fprintf(fh, "%s %s %s ", r, g, b);
+        fprintf(fh, "%d %d %d ", pm.pixmap[i].r, pm.pixmap[i].g, pm.pixmap[i].b);
     }
 }
 
@@ -257,7 +241,7 @@ int main(int argc, char **argv)
     fclose(input);
 
     struct ppm_pixmap pm = {0};
-    s32 status_code = init_ppm_pixmap(&pm, fc);
+    s32 status_code = init_ppm_pixmap(&pm, &fc);
 
     if (status_code != INIT_SUCCESS) {
         handle_init_error_code(status_code);
