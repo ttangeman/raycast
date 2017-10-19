@@ -100,7 +100,7 @@ void project_scene_on_image(struct scene *scene, struct pixmap image)
     double pixel_width = camera.width / image.width;
     double pixel_height = camera.height / image.height;
     // I'm not sure if this is supposed to be negative or not...
-    double focal_point = -1;
+    double focal_point = 1;
 
     v3 center = {0, 0, focal_point};
     v3 ro = {0};
