@@ -23,13 +23,7 @@ Example usage:
     ./raycast 800 600 input.csv output.ppm
 
 # Known Issues
-CSV files with spaces are not accounted for in the parser. Example:
-
-    plane, position : [1, 0, 0]
-
-Would not be properly parsed. It needs to have no spaces:
-
-    plane,position:[1,0,0]
+None at this time.
 
 # Author
 Trey Tangeman   <tct49@nau.edu>

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Gets the offset into the string of the next line
 static void get_line_offset(struct file_contents *csv)
 {
     char *memory = (char *)csv->memory;
@@ -13,6 +14,7 @@ static void get_line_offset(struct file_contents *csv)
     }
 }
 
+// Gets the next line dictated by a newline character.
 static void get_line(struct file_contents *csv, char *str)
 {
     char *memory = csv->memory;
@@ -24,6 +26,7 @@ static void get_line(struct file_contents *csv, char *str)
     str[end] = '\0';
 }
 
+// Gets the number of objects in the file (actually just counts newlines).
 static u32 get_num_objs(char *memory, size_t size)
 {
     u32 n = 0;
@@ -35,6 +38,7 @@ static u32 get_num_objs(char *memory, size_t size)
     return n;
 }
 
+// Handy macro for comparing a string and literal string
 #define strlcmp(str, strlit) (strncmp(str, strlit, sizeof(strlit)) == 0)
 
 static void init_camera_object(struct object *obj, char *line)
@@ -70,7 +74,7 @@ static void init_plane_object(struct object *obj, char *line)
     char *token;
     while((token = strsep(&line, ":")) != NULL) {
         if (strlcmp(token, "color")) {
-            // the brackets are omitted form r and b
+            // the brackets are omitted from r and b
             char *rtemp = strsep(&line, ",");
             char *r = &rtemp[1];
             char *g = strsep(&line, ",");
@@ -81,7 +85,7 @@ static void init_plane_object(struct object *obj, char *line)
             color.g = atof(g);
             color.b = atof(b);
         } else if (strlcmp(token, "position")) {
-            // the brackets are omitted form x and z
+            // the brackets are omitted from x and z
             char *xtemp = strsep(&line, ",");
             char *x = &xtemp[1];
             char *y = strsep(&line, ",");
@@ -118,7 +122,7 @@ static void init_sphere_object(struct object *obj, char *line)
 
     while((token = strsep(&line, ":")) != NULL) {
         if (strlcmp(token, "color")) {
-            // the brackets are omitted form r and b
+            // the brackets are omitted from r and b
             char *rtemp = strsep(&line, ",");
             char *r = &rtemp[1];
             char *g = strsep(&line, ",");
@@ -129,7 +133,7 @@ static void init_sphere_object(struct object *obj, char *line)
             color.g = atof(g);
             color.b = atof(b);
         } else if (strlcmp(token, "position")) {
-            // the brackets are omitted form x and z
+            // the brackets are omitted from x and z
             char *xtemp = strsep(&line, ",");
             char *x = &xtemp[1];
             char *y = strsep(&line, ",");
@@ -163,6 +167,18 @@ static void parse_line(struct object *obj, char *line)
     }
 }
 
+// Eats all whitespace from a given string (not including newlines)
+static void remove_all_spaces(char *src, char *dest)
+{
+    while (*src) {
+        *dest = *src++;
+        if (*dest != ' ') {
+            dest++;
+        }
+    }
+    *dest = 0;
+}
+
 static struct object *get_csv_objects(struct file_contents *csvfc, u32 nobjs)
 {
     struct object *objs = malloc(sizeof(struct object) * nobjs);
@@ -175,12 +191,13 @@ static struct object *get_csv_objects(struct file_contents *csvfc, u32 nobjs)
     // Each line contains ONLY 1 object!
     for (int i = 0; i < nobjs; i++) {
         struct object *obj = &objs[i];
-        char *line = malloc(sizeof(char) * 1024);
+        char temp[1024];
+        char line[1024];
 
-        get_line(csvfc, line);
+        get_line(csvfc, temp);
+        remove_all_spaces(temp, line);
         parse_line(obj, line);
 
-        free(line);
     }
     return objs;
 }
