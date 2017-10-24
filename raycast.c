@@ -88,6 +88,7 @@ double plane_intersection_check(struct plane *plane, v3 ro, v3 rd)
     return t;
 }
 
+// Popualtes a pixmap with the pixel colors it found via intersecton tests
 void project_scene_on_image(struct scene *scene, struct pixmap image)
 {
     if (!scene->cameras) {
@@ -99,7 +100,6 @@ void project_scene_on_image(struct scene *scene, struct pixmap image)
     struct camera camera = scene->cameras[0];
     double pixel_width = camera.width / image.width;
     double pixel_height = camera.height / image.height;
-    // I'm not sure if this is supposed to be negative or not...
     double focal_point = 1;
 
     v3 center = {0, 0, focal_point};
@@ -110,6 +110,7 @@ void project_scene_on_image(struct scene *scene, struct pixmap image)
     for (int i = 0; i < image.height; i++) {
         for (int j = 0; j < image.width; j++) {
             p.x = center.x - camera.width*0.5 + pixel_width * (j + 0.5);
+            // Make the +Y axis be "up" by negating it
             p.y = -(center.y - camera.height*0.5 + pixel_height * (i + 0.5));
             p.z = center.z;
             v3_normalize(&rd, p);
@@ -160,9 +161,11 @@ int main(int argc, char **argv)
         die("Error: failed to open input file (%s)!", infn);
     }
 
+    // Reads the entire file into memory
     struct file_contents fc = get_file_contents(input);
     fclose(input);
 
+    // Get a scene with arrays of spheres and planes to render
     struct scene *scene = malloc(sizeof(struct scene));
     construct_scene(&fc, scene);
     free(fc.memory);
@@ -175,6 +178,7 @@ int main(int argc, char **argv)
     // This gets us a pixmap populated with all the colored pixels
     project_scene_on_image(scene, image);
 
+    // I should create a function for this in ppmrw...
     struct ppm_pixmap pm = {0};
     pm.format = P6_PPM;
     pm.width = image.width;
@@ -182,10 +186,12 @@ int main(int argc, char **argv)
     pm.maxval = 255;
     pm.pixmap = image.pixels;
 
+    // Write the P6 PPM pixmap
     output = fopen(outfn, "w");
     write_ppm_header(pm, output, pm.format);
     write_p6_pixmap(pm, output);
 
+    // Clean up
     fclose(output);
     free(image.pixels);
     free_scene(scene);
