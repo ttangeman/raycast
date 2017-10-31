@@ -20,7 +20,7 @@ static void die(const char *reason, ...)
 }
 
 // Clean-up
-void free_scene(struct scene *scene)
+static inline void free_scene(struct scene *scene)
 {
     free(scene->spheres);
     free(scene->planes);
@@ -63,7 +63,7 @@ static double sphere_intersection_check(struct sphere *sphere, v3 ro, v3 rd)
 }
 
 // Checks planes for intersection
-double plane_intersection_check(struct plane *plane, v3 ro, v3 rd)
+static double plane_intersection_check(struct plane *plane, v3 ro, v3 rd)
 {
     v3 norm = plane->norm;
     v3 pos = plane->pos;
@@ -88,8 +88,31 @@ double plane_intersection_check(struct plane *plane, v3 ro, v3 rd)
     return t;
 }
 
+static color3f raycast(struct scene *scene, v3 ro, v3 rd)
+{
+    color3f closest_color = {0};
+    double t;
+    // Check for plane intersections
+    for (int plane_index = 0; plane_index < scene->num_planes; plane_index++) {
+        struct plane *plane = &scene->planes[plane_index];
+        t = plane_intersection_check(plane, ro, rd);
+        if (t > 0) {
+            closest_color = plane->color;
+        }
+    }
+    // Check for sphere intersections
+    for (int sphere_index = 0; sphere_index < scene->num_spheres; sphere_index++) {
+        struct sphere *sphere = &scene->spheres[sphere_index];
+        t = sphere_intersection_check(sphere, ro, rd);
+        if (t > 0) {
+            closest_color = sphere->color;
+        }
+    }
+    return closest_color;
+}
+
 // Popualtes a pixmap with the pixel colors it found via intersecton tests
-void project_scene_on_image(struct scene *scene, struct pixmap image)
+void render_scene(struct scene *scene, struct pixmap image)
 {
     if (!scene->cameras) {
         free(image.pixels);
@@ -107,37 +130,23 @@ void project_scene_on_image(struct scene *scene, struct pixmap image)
     v3 rd = {0};
     v3 p = {0};
 
-    for (int i = 0; i < image.height; i++) {
-        for (int j = 0; j < image.width; j++) {
+    color3f color;
+
+    for (int i = 0; i < image.width; i++) {
+        for (int j = 0; j < image.height; j++) {
             p.x = center.x - camera.width*0.5 + pixel_width * (j + 0.5);
             // Make the +Y axis be "up" by negating it
             p.y = -(center.y - camera.height*0.5 + pixel_height * (i + 0.5));
             p.z = center.z;
             v3_normalize(&rd, p);
 
-            // Check for plane intersections
-            for (int plane_index = 0; plane_index < scene->num_planes; plane_index++) {
-                struct plane *plane = &scene->planes[plane_index];
-                double t = plane_intersection_check(plane, ro, rd);
-                if (t > 0) {
-                    image.pixels[i * image.width + j].r = 255 * clamp01(plane->color.r);
-                    image.pixels[i * image.width + j].g = 255 * clamp01(plane->color.g);
-                    image.pixels[i * image.width + j].b = 255 * clamp01(plane->color.b);
-                }
-            }
-            // Check for sphere intersections
-            for (int sphere_index = 0; sphere_index < scene->num_spheres; sphere_index++) {
-                struct sphere *sphere = &scene->spheres[sphere_index];
-                double t = sphere_intersection_check(sphere, ro, rd);
-                if (t > 0) {
-                    image.pixels[i * image.width + j].r = 255 * clamp01(sphere->color.r);
-                    image.pixels[i * image.width + j].g = 255 * clamp01(sphere->color.g);
-                    image.pixels[i * image.width + j].b = 255 * clamp01(sphere->color.b);
-                }
-            }
+            color = raycast(scene, ro, rd);
+
+            image.pixels[i * image.width + j].r = 255 * clamp01(color.r);
+            image.pixels[i * image.width + j].g = 255 * clamp01(color.g);
+            image.pixels[i * image.width + j].b = 255 * clamp01(color.b);
         }
     }
-
 }
 
 int main(int argc, char **argv)
@@ -176,7 +185,7 @@ int main(int argc, char **argv)
     image.pixels = malloc(sizeof(pixel) * width * height);
 
     // This gets us a pixmap populated with all the colored pixels
-    project_scene_on_image(scene, image);
+    render_scene(scene, image);
 
     // I should create a function for this in ppmrw...
     struct ppm_pixmap pm = {0};
