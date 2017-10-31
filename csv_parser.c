@@ -337,7 +337,6 @@ void construct_scene(struct file_contents *csvfc, struct scene *scene)
 
     for (int i = 0; i < nobjs; i++) {
         struct object *obj = &objs[i];
-        printf("%d\n", obj->type);
         if (obj->type == OBJ_LIGHT) {
             num_lights++;
         } else if (obj->type == OBJ_CAMERA) {
