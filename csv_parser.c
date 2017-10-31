@@ -98,6 +98,15 @@ static void init_light_object(struct object *obj, char *line)
         } else if (strlcmp(token, "radial-a2")) {
             char *a2_str = strsep(&line, ",");
             a2 = atof(a2_str);
+        } else if (strlcmp(token, "angular-a0")) {
+            char *a0_str = strsep(&line, ",");
+            a0 = atof(a0_str);
+        } else if (strlcmp(token, "angular-a1")) {
+            char *a1_str = strsep(&line, ",");
+            a1 = atof(a1_str);
+        } else if (strlcmp(token, "angular-a2")) {
+            char *a2_str = strsep(&line, ",");
+            a2 = atof(a2_str);
         } else if (strlcmp(token, "position")) {
             // the brackets are omitted from x and z
             char *xtemp = strsep(&line, ",");
