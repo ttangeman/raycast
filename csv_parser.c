@@ -120,6 +120,7 @@ static void init_light_object(struct object *obj, char *line)
             pos.z = atof(z);
         }
     }
+    obj->type = OBJ_LIGHT;
     obj->light.color = color;
     obj->light.theta = theta;
     obj->light.a0 = a0;
@@ -336,6 +337,7 @@ void construct_scene(struct file_contents *csvfc, struct scene *scene)
 
     for (int i = 0; i < nobjs; i++) {
         struct object *obj = &objs[i];
+        printf("%d\n", obj->type);
         if (obj->type == OBJ_LIGHT) {
             num_lights++;
         } else if (obj->type == OBJ_CAMERA) {
