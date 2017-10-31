@@ -88,10 +88,10 @@ static double plane_intersection_check(struct plane *plane, v3 ro, v3 rd)
     return t;
 }
 
-static color3f raycast(struct scene *scene, v3 ro, v3 rd)
+static color3f ray_intersect(struct scene *scene, v3 ro, v3 rd)
 {
-    color3f closest_color = {0};
     double t;
+    color3f closest_color = {0};
     // Check for plane intersections
     for (int plane_index = 0; plane_index < scene->num_planes; plane_index++) {
         struct plane *plane = &scene->planes[plane_index];
@@ -109,6 +109,17 @@ static color3f raycast(struct scene *scene, v3 ro, v3 rd)
         }
     }
     return closest_color;
+}
+
+static color3f raycast(struct scene *scene, v3 ro, v3 rd)
+{
+    color3f final_color = ray_intersect(scene, ro, rd);
+
+    for (int light_index = 0; light_index < scene->num_lights; light_index++) {
+        struct light *light = &scene->lights[light_index];
+    }
+
+    return final_color;
 }
 
 // Popualtes a pixmap with the pixel colors it found via intersecton tests
