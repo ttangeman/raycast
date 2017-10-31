@@ -88,16 +88,33 @@ static double plane_intersection_check(struct plane *plane, v3 ro, v3 rd)
     return t;
 }
 
-static color3f ray_intersect(struct scene *scene, v3 ro, v3 rd)
+static inline v3 get_intersection_point(v3 ro, v3 rd, double t)
 {
+    v3 result = {0};
+    result.x = ro.x + rd.x*t;
+    result.y = ro.y + rd.y*t;
+    result.z = ro.z + rd.z*t;
+    return result;
+}
+
+struct intersect_data {
+    color3f diffuse;
+    color3f specular;
+    v3 point;
+};
+
+static struct intersect_data ray_intersect(struct scene *scene, v3 ro, v3 rd)
+{
+    struct intersect_data result = {0};
     double t;
-    color3f closest_color = {0};
     // Check for plane intersections
     for (int plane_index = 0; plane_index < scene->num_planes; plane_index++) {
         struct plane *plane = &scene->planes[plane_index];
         t = plane_intersection_check(plane, ro, rd);
         if (t > 0) {
-            closest_color = plane->color;
+            result.point = get_intersection_point(ro, rd, t);
+            result.diffuse = plane->diffuse;
+            result.specular = plane->specular;
         }
     }
     // Check for sphere intersections
@@ -105,15 +122,19 @@ static color3f ray_intersect(struct scene *scene, v3 ro, v3 rd)
         struct sphere *sphere = &scene->spheres[sphere_index];
         t = sphere_intersection_check(sphere, ro, rd);
         if (t > 0) {
-            closest_color = sphere->color;
+            result.point = get_intersection_point(ro, rd, t);
+            result.diffuse = sphere->diffuse;
+            result.specular = sphere->specular;
         }
     }
-    return closest_color;
+    return result;
 }
 
 static color3f raycast(struct scene *scene, v3 ro, v3 rd)
 {
-    color3f final_color = ray_intersect(scene, ro, rd);
+    struct intersect_data intersection = ray_intersect(scene, ro, rd);
+    // TODO: this is temp
+    color3f final_color = intersection.diffuse;
 
     for (int light_index = 0; light_index < scene->num_lights; light_index++) {
         struct light *light = &scene->lights[light_index];
@@ -134,7 +155,7 @@ void render_scene(struct scene *scene, struct pixmap image)
     struct camera camera = scene->cameras[0];
     double pixel_width = camera.width / image.width;
     double pixel_height = camera.height / image.height;
-    double focal_point = 1;
+    double focal_point = -1;
 
     v3 center = {0, 0, focal_point};
     v3 ro = {0};
