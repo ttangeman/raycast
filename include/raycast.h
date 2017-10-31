@@ -10,7 +10,8 @@ struct color3f {
 struct light {
     color3f color;
     double theta;
-    double a0, a1, a2;
+    double rad_a0, rad_a1, rad_a2;
+    double ang_a0, ang_a1, ang_a2;
     v3 pos;
 };
 

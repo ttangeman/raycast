@@ -71,7 +71,12 @@ static void init_light_object(struct object *obj, char *line)
 {
     color3f color;
     double theta;
-    double a0, a1, a2;
+    double rad_a0 = {0};
+    double rad_a1 = {0};
+    double rad_a2 = {0};
+    double ang_a0 = {0};
+    double ang_a1 = {0};
+    double ang_a2 = {0};
     v3 pos;
     char *token;
     while((token = strsep(&line, ":")) != NULL) {
@@ -91,22 +96,22 @@ static void init_light_object(struct object *obj, char *line)
             theta = atof(theta_str);
         } else if (strlcmp(token, "radial-a0")) {
             char *a0_str = strsep(&line, ",");
-            a0 = atof(a0_str);
+            rad_a0 = atof(a0_str);
         } else if (strlcmp(token, "radial-a1")) {
             char *a1_str = strsep(&line, ",");
-            a1 = atof(a1_str);
+            rad_a1 = atof(a1_str);
         } else if (strlcmp(token, "radial-a2")) {
             char *a2_str = strsep(&line, ",");
-            a2 = atof(a2_str);
+            rad_a2 = atof(a2_str);
         } else if (strlcmp(token, "angular-a0")) {
             char *a0_str = strsep(&line, ",");
-            a0 = atof(a0_str);
+            ang_a0 = atof(a0_str);
         } else if (strlcmp(token, "angular-a1")) {
             char *a1_str = strsep(&line, ",");
-            a1 = atof(a1_str);
+            ang_a1 = atof(a1_str);
         } else if (strlcmp(token, "angular-a2")) {
             char *a2_str = strsep(&line, ",");
-            a2 = atof(a2_str);
+            ang_a2 = atof(a2_str);
         } else if (strlcmp(token, "position")) {
             // the brackets are omitted from x and z
             char *xtemp = strsep(&line, ",");
@@ -123,9 +128,12 @@ static void init_light_object(struct object *obj, char *line)
     obj->type = OBJ_LIGHT;
     obj->light.color = color;
     obj->light.theta = theta;
-    obj->light.a0 = a0;
-    obj->light.a1 = a1;
-    obj->light.a2 = a2;
+    obj->light.rad_a0 = rad_a0;
+    obj->light.rad_a1 = rad_a1;
+    obj->light.rad_a2 = rad_a2;
+    obj->light.ang_a0 = ang_a0;
+    obj->light.ang_a1 = ang_a1;
+    obj->light.ang_a2 = ang_a2;
     obj->light.pos = pos;
 }
 
