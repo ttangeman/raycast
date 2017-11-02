@@ -75,8 +75,7 @@ static void init_light_object(struct object *obj, char *line)
     double rad_a1 = {0};
     double rad_a2 = {0};
     double ang_a0 = {0};
-    double ang_a1 = {0};
-    double ang_a2 = {0};
+    v3 direction;
     v3 pos;
     char *token;
     while((token = strsep(&line, ":")) != NULL) {
@@ -106,12 +105,6 @@ static void init_light_object(struct object *obj, char *line)
         } else if (strlcmp(token, "angular-a0")) {
             char *a0_str = strsep(&line, ",");
             ang_a0 = atof(a0_str);
-        } else if (strlcmp(token, "angular-a1")) {
-            char *a1_str = strsep(&line, ",");
-            ang_a1 = atof(a1_str);
-        } else if (strlcmp(token, "angular-a2")) {
-            char *a2_str = strsep(&line, ",");
-            ang_a2 = atof(a2_str);
         } else if (strlcmp(token, "position")) {
             // the brackets are omitted from x and z
             char *xtemp = strsep(&line, ",");
@@ -123,6 +116,17 @@ static void init_light_object(struct object *obj, char *line)
             pos.x = atof(x);
             pos.y = atof(y);
             pos.z = atof(z);
+        } else if (strlcmp(token, "direction")) {
+            // the brackets are omitted from x and z
+            char *xtemp = strsep(&line, ",");
+            char *x = &xtemp[1];
+            char *y = strsep(&line, ",");
+            char *ztemp = strsep(&line, ",");
+            char *z = strsep(&ztemp, "]");
+
+            direction.x = atof(x);
+            direction.y = atof(y);
+            direction.z = atof(z);
         }
     }
     obj->type = OBJ_LIGHT;
@@ -132,8 +136,7 @@ static void init_light_object(struct object *obj, char *line)
     obj->light.rad_a1 = rad_a1;
     obj->light.rad_a2 = rad_a2;
     obj->light.ang_a0 = ang_a0;
-    obj->light.ang_a1 = ang_a1;
-    obj->light.ang_a2 = ang_a2;
+    obj->light.direction = direction;
     obj->light.pos = pos;
 }
 
