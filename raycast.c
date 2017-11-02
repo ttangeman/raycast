@@ -8,6 +8,13 @@
 #include <string.h>
 #include <math.h>
 
+struct intersect_data {
+    v3 point;
+    v3 normal;
+    color3f diffuse;
+    color3f specular;
+};
+
 // Useful message and quit function
 static void die(const char *reason, ...)
 {
@@ -88,6 +95,55 @@ static double plane_intersection_check(struct plane *plane, v3 ro, v3 rd)
     return t;
 }
 
+static inline double angular_attenuation(struct light *light, v3 intersection_point)
+{
+    if (light->theta) {
+        // TODO
+        return 0;
+    } else {
+        return 1.0;
+    }
+}
+
+static inline double radial_attenuation(struct light *light, v3 intersection_point)
+{
+    double dist = v3_distance(light->pos, intersection_point);
+
+    if (dist == INFINITY) {
+        return 1.0;
+    } else {
+        double result = light->rad_a2*(dist*dist) + light->rad_a1*dist + light->rad_a0;
+        return (1.0 / result);
+    }
+}
+
+static inline color3f diffuse_reflection(struct light *light, struct intersect_data intersect)
+{
+    color3f result = {0};
+    v3 light_vec = {0};
+
+    v3_sub(&light_vec, light->pos, intersect.point);
+    v3_normalize(&light_vec, light_vec);
+    double costheta = v3_dot(intersect.normal, light_vec);
+
+    if (costheta > 0) {
+        // No ambient light to be included
+        result.r = (intersect.diffuse.r * light->color.r) * costheta;
+        result.g = (intersect.diffuse.g * light->color.g) * costheta;
+        result.b = (intersect.diffuse.b * light->color.b) * costheta;
+        return result;
+    } else {
+#if 0
+        // I didn't want 0 ambient light so I included this small factor,
+        // it adds a nice touch to the image
+        color3f ambient = {.12, .12, .12};
+        return ambient;
+#endif
+        // no ambient light
+        return result;
+    }
+}
+
 static inline v3 get_intersection_point(v3 ro, v3 rd, double t)
 {
     v3 result = {0};
@@ -97,11 +153,12 @@ static inline v3 get_intersection_point(v3 ro, v3 rd, double t)
     return result;
 }
 
-struct intersect_data {
-    color3f diffuse;
-    color3f specular;
-    v3 point;
-};
+static inline v3 get_sphere_normal(v3 intersection_point, v3 sphere_center)
+{
+    v3 result = {0};
+    v3_sub(&result, intersection_point, sphere_center);
+    return result;
+}
 
 static struct intersect_data ray_intersect(struct scene *scene, v3 ro, v3 rd)
 {
@@ -113,6 +170,7 @@ static struct intersect_data ray_intersect(struct scene *scene, v3 ro, v3 rd)
         t = plane_intersection_check(plane, ro, rd);
         if (t > 0) {
             result.point = get_intersection_point(ro, rd, t);
+            result.normal = plane->norm;
             result.diffuse = plane->diffuse;
             result.specular = plane->specular;
         }
@@ -123,6 +181,7 @@ static struct intersect_data ray_intersect(struct scene *scene, v3 ro, v3 rd)
         t = sphere_intersection_check(sphere, ro, rd);
         if (t > 0) {
             result.point = get_intersection_point(ro, rd, t);
+            result.normal = get_sphere_normal(result.point, sphere->pos);
             result.diffuse = sphere->diffuse;
             result.specular = sphere->specular;
         }
@@ -133,13 +192,19 @@ static struct intersect_data ray_intersect(struct scene *scene, v3 ro, v3 rd)
 static color3f raycast(struct scene *scene, v3 ro, v3 rd)
 {
     struct intersect_data intersection = ray_intersect(scene, ro, rd);
-    // TODO: this is temp
-    color3f final_color = intersection.diffuse;
+    color3f final_color = {0};
+    color3f diffuse_color = {0};
+    double rad_factor = 0;
 
     for (int light_index = 0; light_index < scene->num_lights; light_index++) {
         struct light *light = &scene->lights[light_index];
-    }
+        rad_factor = radial_attenuation(light, intersection.point);
+        diffuse_color = diffuse_reflection(light, intersection);
 
+        final_color.r += rad_factor * diffuse_color.r;
+        final_color.g += rad_factor * diffuse_color.g;
+        final_color.b += rad_factor * diffuse_color.b;
+    }
     return final_color;
 }
 

@@ -33,6 +33,15 @@ struct v3 {
     double x, y, z;
 };
 
+static inline double v3_distance(v3 from, v3 to)
+{
+    double x = to.x - from.x;
+    double y = to.y - from.y;
+    double z = to.z - from.z;
+
+    return sqrt(x*x + y*y + z*z);
+}
+
 static inline double v3_magnitude(v3 vec)
 {
     return sqrt(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z);

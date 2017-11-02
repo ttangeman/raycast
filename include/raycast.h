@@ -9,10 +9,15 @@ struct color3f {
 
 struct light {
     color3f color;
-    double theta;
-    double rad_a0, rad_a1, rad_a2;
-    double ang_a0, ang_a1, ang_a2;
     v3 pos;
+    double rad_a0;
+    double rad_a1;
+    double rad_a2;
+
+    // spotlights
+    v3 direction;
+    double theta;
+    double ang_a0;
 };
 
 struct sphere {
