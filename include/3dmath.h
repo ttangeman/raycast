@@ -2,6 +2,8 @@
 
 #include <math.h>
 
+#define PI 3.14159265359
+
 /*
  * General math
  * ===================
@@ -20,6 +22,11 @@ static inline double clamp(double value, double min, double max)
 static inline double clamp01(double value)
 {
     return clamp(value, 0, 1);
+}
+
+static inline double convert_to_rad(double degrees)
+{
+    return ((degrees * PI) / 180);
 }
 
 /*

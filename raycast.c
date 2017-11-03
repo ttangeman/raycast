@@ -98,8 +98,20 @@ static double plane_intersection_check(struct plane *plane, v3 ro, v3 rd)
 static inline double angular_attenuation(struct light *light, v3 intersection_point)
 {
     if (light->theta) {
-        // TODO
-        return 0;
+        color3f result = {0};
+        v3 light_vec = {0};
+
+        v3_sub(&light_vec, light->pos, intersection_point);
+        v3_normalize(&light_vec, light_vec);
+
+        double cosalpha = v3_dot(light->direction, light_vec);
+        double costheta = cos(convert_to_rad(light->theta));
+
+        if (cosalpha > costheta) {
+            return 0;
+        } else {
+            return(pow(costheta, light->ang_a0));
+        }
     } else {
         return 1.0;
     }
@@ -109,6 +121,7 @@ static inline double radial_attenuation(struct light *light, v3 intersection_poi
 {
     double dist = v3_distance(light->pos, intersection_point);
 
+    //TODO: error check if light isn't radial
     if (dist == INFINITY) {
         return 1.0;
     } else {
@@ -126,20 +139,21 @@ static inline color3f diffuse_reflection(struct light *light, struct intersect_d
     v3_normalize(&light_vec, light_vec);
     double costheta = v3_dot(intersect.normal, light_vec);
 
+    color3f ambient = {.1, .1, .1};
+
     if (costheta > 0) {
-        // No ambient light to be included
         result.r = (intersect.diffuse.r * light->color.r) * costheta;
         result.g = (intersect.diffuse.g * light->color.g) * costheta;
         result.b = (intersect.diffuse.b * light->color.b) * costheta;
+#if 1
+        // ambient light hack
+        result.r += ambient.r;
+        result.g += ambient.g;
+        result.b += ambient.b;
+#endif
         return result;
     } else {
-#if 0
-        // I didn't want 0 ambient light so I included this small factor,
-        // it adds a nice touch to the image
-        color3f ambient = {.12, .12, .12};
-        return ambient;
-#endif
-        // no ambient light
+        // scene looks weird if I include background ambient light
         return result;
     }
 }
@@ -195,15 +209,18 @@ static color3f raycast(struct scene *scene, v3 ro, v3 rd)
     color3f final_color = {0};
     color3f diffuse_color = {0};
     double rad_factor = 0;
+    double ang_factor = 0;
 
     for (int light_index = 0; light_index < scene->num_lights; light_index++) {
         struct light *light = &scene->lights[light_index];
         rad_factor = radial_attenuation(light, intersection.point);
+        ang_factor = angular_attenuation(light, intersection.point);
         diffuse_color = diffuse_reflection(light, intersection);
 
-        final_color.r += rad_factor * diffuse_color.r;
-        final_color.g += rad_factor * diffuse_color.g;
-        final_color.b += rad_factor * diffuse_color.b;
+        //TODO: check
+        final_color.r += rad_factor * ang_factor * diffuse_color.r;
+        final_color.g += rad_factor * ang_factor * diffuse_color.g;
+        final_color.b += rad_factor * ang_factor * diffuse_color.b;
     }
     return final_color;
 }
