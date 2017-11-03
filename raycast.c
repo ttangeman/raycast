@@ -250,6 +250,7 @@ static color3f raycast(struct scene *scene, v3 ro, v3 rd)
         specular_color = specular_reflection(light, intersection, rd);
 
         //TODO: shadowing
+        //TODO: Error Checking
 
         final_color.r += (ang_factor * rad_factor) * (diffuse_color.r + specular_color.r) + ambient.r;
         final_color.g += (ang_factor * rad_factor) * (diffuse_color.g + specular_color.g) + ambient.g;
