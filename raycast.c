@@ -105,16 +105,46 @@ static inline double angular_attenuation(struct light *light, v3 intersection_po
         v3_normalize(&light_vec, light_vec);
 
         double cosalpha = v3_dot(light->direction, light_vec);
-        double costheta = cos(convert_to_rad(light->theta));
 
-        if (cosalpha > costheta) {
+        double alpha = acos(cosalpha);
+        double theta = convert_to_rad(light->theta);
+
+        if (alpha > theta) {
             return 0;
         } else {
-            return(pow(costheta, light->ang_a0));
+            return(pow(cosalpha, light->ang_a0));
         }
     } else {
         return 1.0;
     }
+}
+
+#define SHININESS 20
+
+static inline color3f specular_reflection(struct light *light, struct intersect_data intersect, v3 rd)
+{
+    color3f result = {0};
+    v3 light_vec = {0};
+    v3 view_vec = {0};
+    v3 reflected_vec = {0};
+
+    v3_sub(&light_vec, light->pos, intersect.point);
+    v3_sub(&view_vec, intersect.point, rd);
+    v3_reflection(&reflected_vec, light_vec, intersect.normal);
+    v3_normalize(&light_vec, light_vec);
+    v3_normalize(&view_vec, view_vec);
+    v3_normalize(&reflected_vec, reflected_vec);
+
+    double view_angle = v3_dot(view_vec, reflected_vec);
+    double light_angle = v3_dot(light_vec, intersect.normal);
+
+    if (view_angle > 0 && light_angle > 0) {
+        double shininess_factor = pow(view_angle, SHININESS);
+        result.r = intersect.specular.r * light->color.r * shininess_factor;
+        result.g = intersect.specular.g * light->color.g * shininess_factor;
+        result.b = intersect.specular.b * light->color.b * shininess_factor;
+    }
+    return result;
 }
 
 static inline double radial_attenuation(struct light *light, v3 intersection_point)
@@ -149,15 +179,8 @@ static inline color3f diffuse_reflection(struct light *light, struct intersect_d
         result.r = (intersect.diffuse.r * light->color.r) * costheta;
         result.g = (intersect.diffuse.g * light->color.g) * costheta;
         result.b = (intersect.diffuse.b * light->color.b) * costheta;
-#if 0
-        // ambient light hack
-        result.r += ambient.r;
-        result.g += ambient.g;
-        result.b += ambient.b;
-#endif
         return result;
     } else {
-        // scene looks weird if I include background ambient light
         return result;
     }
 }
@@ -175,6 +198,7 @@ static inline v3 get_sphere_normal(v3 intersection_point, v3 sphere_center)
 {
     v3 result = {0};
     v3_sub(&result, intersection_point, sphere_center);
+    v3_normalize(&result, result);
     return result;
 }
 
@@ -214,18 +238,22 @@ static color3f raycast(struct scene *scene, v3 ro, v3 rd)
     // Hacked in ambient light
     color3f ambient = {.02, .02, .02};
     color3f diffuse_color = {0};
-    double rad_factor = 0;
-    double ang_factor = 0;
+    color3f specular_color = {0};
+    double rad_factor = 1;
+    double ang_factor = 1;
 
     for (int light_index = 0; light_index < scene->num_lights; light_index++) {
         struct light *light = &scene->lights[light_index];
         rad_factor = radial_attenuation(light, intersection.point);
         ang_factor = angular_attenuation(light, intersection.point);
         diffuse_color = diffuse_reflection(light, intersection);
+        specular_color = specular_reflection(light, intersection, rd);
 
-        final_color.r += (ang_factor * rad_factor * diffuse_color.r) + ambient.r;
-        final_color.g += (ang_factor * rad_factor * diffuse_color.g) + ambient.g;
-        final_color.b += (ang_factor * rad_factor * diffuse_color.b) + ambient.b;
+        //TODO: shadowing
+
+        final_color.r += (ang_factor * rad_factor) * (diffuse_color.r + specular_color.r) + ambient.r;
+        final_color.g += (ang_factor * rad_factor) * (diffuse_color.g + specular_color.g) + ambient.g;
+        final_color.b += (ang_factor * rad_factor) * (diffuse_color.b + specular_color.b) + ambient.b;
     }
     return final_color;
 }

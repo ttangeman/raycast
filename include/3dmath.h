@@ -99,3 +99,11 @@ static inline void v3_cross(v3 *result, v3 a, v3 b)
     result->y = a.z*b.x - a.x*b.z;
     result->z = a.x*b.y - a.y*b.x;
 }
+
+static inline void v3_reflection(v3 *result, v3 vec, v3 normal)
+{
+    double vdotn = v3_dot(vec, normal);
+    v3 temp = {0};
+    v3_scale(&temp, normal, 2 * vdotn);
+    v3_sub(result, vec, temp);
+}
