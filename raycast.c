@@ -121,7 +121,11 @@ static inline double radial_attenuation(struct light *light, v3 intersection_poi
 {
     double dist = v3_distance(light->pos, intersection_point);
 
-    //TODO: error check if light isn't radial
+    // if light is a spotlight
+    if (light->theta) {
+        return 1.0;
+    }
+
     if (dist == INFINITY) {
         return 1.0;
     } else {
@@ -145,7 +149,7 @@ static inline color3f diffuse_reflection(struct light *light, struct intersect_d
         result.r = (intersect.diffuse.r * light->color.r) * costheta;
         result.g = (intersect.diffuse.g * light->color.g) * costheta;
         result.b = (intersect.diffuse.b * light->color.b) * costheta;
-#if 1
+#if 0
         // ambient light hack
         result.r += ambient.r;
         result.g += ambient.g;
@@ -207,6 +211,8 @@ static color3f raycast(struct scene *scene, v3 ro, v3 rd)
 {
     struct intersect_data intersection = ray_intersect(scene, ro, rd);
     color3f final_color = {0};
+    // Hacked in ambient light
+    color3f ambient = {.02, .02, .02};
     color3f diffuse_color = {0};
     double rad_factor = 0;
     double ang_factor = 0;
@@ -217,10 +223,9 @@ static color3f raycast(struct scene *scene, v3 ro, v3 rd)
         ang_factor = angular_attenuation(light, intersection.point);
         diffuse_color = diffuse_reflection(light, intersection);
 
-        //TODO: check
-        final_color.r += rad_factor * ang_factor * diffuse_color.r;
-        final_color.g += rad_factor * ang_factor * diffuse_color.g;
-        final_color.b += rad_factor * ang_factor * diffuse_color.b;
+        final_color.r += (ang_factor * rad_factor * diffuse_color.r) + ambient.r;
+        final_color.g += (ang_factor * rad_factor * diffuse_color.g) + ambient.g;
+        final_color.b += (ang_factor * rad_factor * diffuse_color.b) + ambient.b;
     }
     return final_color;
 }
