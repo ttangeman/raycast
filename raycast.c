@@ -280,19 +280,19 @@ void render_scene(struct scene *scene, struct pixmap image)
 
     color3f color;
 
-    for (int i = 0; i < image.width; i++) {
-        for (int j = 0; j < image.height; j++) {
-            p.x = center.x - camera.width*0.5 + pixel_width * (j + 0.5);
-            // Make the +Y axis be "up" by negating it
-            p.y = -(center.y - camera.height*0.5 + pixel_height * (i + 0.5));
-            p.z = center.z;
-            v3_normalize(&rd, p);
+    for (int i = 0; i < image.height; i++) {
+        for (int j = 0; j < image.width; j++) {
+        p.x = center.x - camera.width*0.5 + pixel_width * (j + 0.5);
+        // Make the +Y axis be "up" by negating it
+        p.y = -(center.y - camera.height*0.5 + pixel_height * (i + 0.5));
+        p.z = center.z;
+        v3_normalize(&rd, p);
 
-            color = raycast(scene, ro, rd);
+        color = raycast(scene, ro, rd);
 
-            image.pixels[i * image.width + j].r = 255 * clamp01(color.r);
-            image.pixels[i * image.width + j].g = 255 * clamp01(color.g);
-            image.pixels[i * image.width + j].b = 255 * clamp01(color.b);
+        image.pixels[i * image.width + j].r = 255 * clamp01(color.r);
+        image.pixels[i * image.width + j].g = 255 * clamp01(color.g);
+        image.pixels[i * image.width + j].b = 255 * clamp01(color.b);
         }
     }
 }
