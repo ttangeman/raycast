@@ -359,7 +359,7 @@ void construct_scene(struct file_contents *csvfc, struct scene *scene)
         }
     }
 
-    lights = malloc(sizeof(struct sphere) * num_lights);
+    lights = malloc(sizeof(struct light) * num_lights);
     cameras = malloc(sizeof(struct camera) * num_cameras);
     planes = malloc(sizeof(struct plane) * num_planes);
     spheres = malloc(sizeof(struct sphere) * num_spheres);
