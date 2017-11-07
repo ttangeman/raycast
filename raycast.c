@@ -105,6 +105,7 @@ static inline double angular_attenuation(struct light *light, v3 intersection_po
 
         v3_sub(&light_vec, light->pos, intersection_point);
         v3_normalize(&light_vec, light_vec);
+        v3_normalize(&light->direction, light->direction);
 
         double cosalpha = v3_dot(light->direction, light_vec);
 
@@ -251,7 +252,7 @@ static color3f raycast(struct scene *scene, v3 ro, v3 rd)
     v3 light_ray = {0};
 
     color3f final_color = {0};
-    color3f ambient = {.1, .1, .1};
+    color3f ambient = {.03, .03, .03};
     color3f diffuse_color = {0};
     color3f specular_color = {0};
     double rad_factor = 1;
