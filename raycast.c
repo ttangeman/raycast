@@ -9,6 +9,7 @@
 #include <math.h>
 
 struct intersect_data {
+    double t;
     v3 point;
     v3 normal;
     color3f diffuse;
@@ -173,8 +174,6 @@ static inline color3f diffuse_reflection(struct light *light, struct intersect_d
     v3_normalize(&light_vec, light_vec);
     double costheta = v3_dot(intersect.normal, light_vec);
 
-    color3f ambient = {.1, .1, .1};
-
     if (costheta > 0) {
         result.r = (intersect.diffuse.r * light->color.r) * costheta;
         result.g = (intersect.diffuse.g * light->color.g) * costheta;
@@ -202,6 +201,15 @@ static inline v3 get_sphere_normal(v3 intersection_point, v3 sphere_center)
     return result;
 }
 
+static inline v3 apply_epsilon(struct intersect_data intersect)
+{
+    v3 result = {0};
+    v3 epsilon = {0};
+    v3_scale(&epsilon, intersect.normal, 0.1);
+    v3_add(&result, intersect.point, epsilon);
+    return result;
+}
+
 static struct intersect_data ray_intersect(struct scene *scene, v3 ro, v3 rd)
 {
     struct intersect_data result = {0};
@@ -211,6 +219,7 @@ static struct intersect_data ray_intersect(struct scene *scene, v3 ro, v3 rd)
         struct plane *plane = &scene->planes[plane_index];
         t = plane_intersection_check(plane, ro, rd);
         if (t > 0) {
+            result.t = t;
             result.point = get_intersection_point(ro, rd, t);
             result.normal = plane->norm;
             result.diffuse = plane->diffuse;
@@ -222,6 +231,7 @@ static struct intersect_data ray_intersect(struct scene *scene, v3 ro, v3 rd)
         struct sphere *sphere = &scene->spheres[sphere_index];
         t = sphere_intersection_check(sphere, ro, rd);
         if (t > 0) {
+            result.t = t;
             result.point = get_intersection_point(ro, rd, t);
             result.normal = get_sphere_normal(result.point, sphere->pos);
             result.diffuse = sphere->diffuse;
@@ -234,9 +244,13 @@ static struct intersect_data ray_intersect(struct scene *scene, v3 ro, v3 rd)
 static color3f raycast(struct scene *scene, v3 ro, v3 rd)
 {
     struct intersect_data intersection = ray_intersect(scene, ro, rd);
+
+    struct intersect_data light_intersect = {0};
+    v3 adjusted_intersect = {0};
+    v3 light_ray = {0};
+
     color3f final_color = {0};
-    // Hacked in ambient light
-    color3f ambient = {.02, .02, .02};
+    color3f ambient = {.1, .1, .1};
     color3f diffuse_color = {0};
     color3f specular_color = {0};
     double rad_factor = 1;
@@ -244,17 +258,22 @@ static color3f raycast(struct scene *scene, v3 ro, v3 rd)
 
     for (int light_index = 0; light_index < scene->num_lights; light_index++) {
         struct light *light = &scene->lights[light_index];
-        rad_factor = radial_attenuation(light, intersection.point);
-        ang_factor = angular_attenuation(light, intersection.point);
-        diffuse_color = diffuse_reflection(light, intersection);
-        specular_color = specular_reflection(light, intersection, rd);
 
-        //TODO: shadowing
-        //TODO: Error Checking
+        v3_sub(&light_ray, light->pos, intersection.point);
+        v3_normalize(&light_ray, light_ray);
+        adjusted_intersect = apply_epsilon(intersection);
+        light_intersect = ray_intersect(scene, adjusted_intersect, light_ray);
 
-        final_color.r += (ang_factor * rad_factor) * (diffuse_color.r + specular_color.r) + ambient.r;
-        final_color.g += (ang_factor * rad_factor) * (diffuse_color.g + specular_color.g) + ambient.g;
-        final_color.b += (ang_factor * rad_factor) * (diffuse_color.b + specular_color.b) + ambient.b;
+        if (light_intersect.t == 0) {
+            rad_factor = radial_attenuation(light, intersection.point);
+            ang_factor = angular_attenuation(light, intersection.point);
+            diffuse_color = diffuse_reflection(light, intersection);
+            specular_color = specular_reflection(light, intersection, rd);
+
+            final_color.r += ang_factor * rad_factor * (diffuse_color.r + specular_color.r) + ambient.r;
+            final_color.g += ang_factor * rad_factor * (diffuse_color.g + specular_color.g) + ambient.g;
+            final_color.b += ang_factor * rad_factor * (diffuse_color.b + specular_color.b) + ambient.b;
+        }
     }
     return final_color;
 }
