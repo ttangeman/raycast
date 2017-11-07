@@ -2,6 +2,8 @@
 
 #include <math.h>
 
+#define PI 3.14159265359
+
 /*
  * General math
  * ===================
@@ -22,6 +24,11 @@ static inline double clamp01(double value)
     return clamp(value, 0, 1);
 }
 
+static inline double convert_to_rad(double degrees)
+{
+    return ((degrees * PI) / 180);
+}
+
 /*
  * 3D Vector math
  * ====================
@@ -32,6 +39,15 @@ typedef struct v3 point;
 struct v3 {
     double x, y, z;
 };
+
+static inline double v3_distance(v3 from, v3 to)
+{
+    double x = to.x - from.x;
+    double y = to.y - from.y;
+    double z = to.z - from.z;
+
+    return sqrt(x*x + y*y + z*z);
+}
 
 static inline double v3_magnitude(v3 vec)
 {
@@ -82,4 +98,12 @@ static inline void v3_cross(v3 *result, v3 a, v3 b)
     result->x = a.y*b.z - a.z*b.y;
     result->y = a.z*b.x - a.x*b.z;
     result->z = a.x*b.y - a.y*b.x;
+}
+
+static inline void v3_reflection(v3 *result, v3 vec, v3 normal)
+{
+    double vdotn = v3_dot(vec, normal);
+    v3 temp = {0};
+    v3_scale(&temp, normal, 2 * vdotn);
+    v3_sub(result, vec, temp);
 }

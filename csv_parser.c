@@ -67,9 +67,84 @@ static void init_camera_object(struct object *obj, char *line)
     obj->camera.height = h;
 }
 
+static void init_light_object(struct object *obj, char *line)
+{
+    color3f color;
+    double theta;
+    double rad_a0 = {0};
+    double rad_a1 = {0};
+    double rad_a2 = {0};
+    double ang_a0 = {0};
+    v3 direction;
+    v3 pos;
+    char *token;
+    while((token = strsep(&line, ":")) != NULL) {
+        if (strlcmp(token, "color")) {
+            // the brackets are omitted from r and b
+            char *rtemp = strsep(&line, ",");
+            char *r = &rtemp[1];
+            char *g = strsep(&line, ",");
+            char *btemp = strsep(&line, ",");
+            char *b = strsep(&btemp, "]");
+
+            color.r = atof(r);
+            color.g = atof(g);
+            color.b = atof(b);
+        } else if (strlcmp(token, "theta")) {
+            char *theta_str = strsep(&line, ",");
+            theta = atof(theta_str);
+        } else if (strlcmp(token, "radial-a0")) {
+            char *a0_str = strsep(&line, ",");
+            rad_a0 = atof(a0_str);
+        } else if (strlcmp(token, "radial-a1")) {
+            char *a1_str = strsep(&line, ",");
+            rad_a1 = atof(a1_str);
+        } else if (strlcmp(token, "radial-a2")) {
+            char *a2_str = strsep(&line, ",");
+            rad_a2 = atof(a2_str);
+        } else if (strlcmp(token, "angular-a0")) {
+            char *a0_str = strsep(&line, ",");
+            ang_a0 = atof(a0_str);
+        } else if (strlcmp(token, "position")) {
+            // the brackets are omitted from x and z
+            char *xtemp = strsep(&line, ",");
+            char *x = &xtemp[1];
+            char *y = strsep(&line, ",");
+            char *ztemp = strsep(&line, ",");
+            char *z = strsep(&ztemp, "]");
+
+            pos.x = atof(x);
+            pos.y = atof(y);
+            pos.z = atof(z);
+        } else if (strlcmp(token, "direction")) {
+            // the brackets are omitted from x and z
+            char *xtemp = strsep(&line, ",");
+            char *x = &xtemp[1];
+            char *y = strsep(&line, ",");
+            char *ztemp = strsep(&line, ",");
+            char *z = strsep(&ztemp, "]");
+
+            direction.x = atof(x);
+            direction.y = atof(y);
+            direction.z = atof(z);
+        }
+    }
+    obj->type = OBJ_LIGHT;
+    obj->light.color = color;
+    obj->light.theta = theta;
+    obj->light.rad_a0 = rad_a0;
+    obj->light.rad_a1 = rad_a1;
+    obj->light.rad_a2 = rad_a2;
+    obj->light.ang_a0 = ang_a0;
+    obj->light.direction = direction;
+    obj->light.pos = pos;
+}
+
 static void init_plane_object(struct object *obj, char *line)
 {
     color3f color;
+    color3f diffuse;
+    color3f specular;
     v3 pos, norm;
     char *token;
     while((token = strsep(&line, ":")) != NULL) {
@@ -84,6 +159,28 @@ static void init_plane_object(struct object *obj, char *line)
             color.r = atof(r);
             color.g = atof(g);
             color.b = atof(b);
+        } else if (strlcmp(token, "diffuse_color")) {
+            // the brackets are omitted from r and b
+            char *rtemp = strsep(&line, ",");
+            char *r = &rtemp[1];
+            char *g = strsep(&line, ",");
+            char *btemp = strsep(&line, ",");
+            char *b = strsep(&btemp, "]");
+
+            diffuse.r = atof(r);
+            diffuse.g = atof(g);
+            diffuse.b = atof(b);
+        } else if (strlcmp(token, "specular_color")) {
+            // the brackets are omitted from r and b
+            char *rtemp = strsep(&line, ",");
+            char *r = &rtemp[1];
+            char *g = strsep(&line, ",");
+            char *btemp = strsep(&line, ",");
+            char *b = strsep(&btemp, "]");
+
+            specular.r = atof(r);
+            specular.g = atof(g);
+            specular.b = atof(b);
         } else if (strlcmp(token, "position")) {
             // the brackets are omitted from x and z
             char *xtemp = strsep(&line, ",");
@@ -109,6 +206,8 @@ static void init_plane_object(struct object *obj, char *line)
     }
     obj->type = OBJ_PLANE;
     obj->plane.color = color;
+    obj->plane.diffuse = diffuse;
+    obj->plane.specular = specular;
     obj->plane.pos = pos;
     obj->plane.norm = norm;
 }
@@ -116,6 +215,8 @@ static void init_plane_object(struct object *obj, char *line)
 static void init_sphere_object(struct object *obj, char *line)
 {
     color3f color;
+    color3f diffuse;
+    color3f specular;
     float radius;
     v3 pos;
     char *token;
@@ -132,6 +233,28 @@ static void init_sphere_object(struct object *obj, char *line)
             color.r = atof(r);
             color.g = atof(g);
             color.b = atof(b);
+        } else if (strlcmp(token, "diffuse_color")) {
+            // the brackets are omitted from r and b
+            char *rtemp = strsep(&line, ",");
+            char *r = &rtemp[1];
+            char *g = strsep(&line, ",");
+            char *btemp = strsep(&line, ",");
+            char *b = strsep(&btemp, "]");
+
+            diffuse.r = atof(r);
+            diffuse.g = atof(g);
+            diffuse.b = atof(b);
+        } else if (strlcmp(token, "specular_color")) {
+            // the brackets are omitted from r and b
+            char *rtemp = strsep(&line, ",");
+            char *r = &rtemp[1];
+            char *g = strsep(&line, ",");
+            char *btemp = strsep(&line, ",");
+            char *b = strsep(&btemp, "]");
+
+            specular.r = atof(r);
+            specular.g = atof(g);
+            specular.b = atof(b);
         } else if (strlcmp(token, "position")) {
             // the brackets are omitted from x and z
             char *xtemp = strsep(&line, ",");
@@ -151,6 +274,8 @@ static void init_sphere_object(struct object *obj, char *line)
 
     obj->type = OBJ_SPHERE;
     obj->sphere.color = color;
+    obj->sphere.diffuse = diffuse;
+    obj->sphere.specular = specular;
     obj->sphere.pos = pos;
     obj->sphere.rad = radius;
 }
@@ -164,6 +289,8 @@ static void parse_line(struct object *obj, char *line)
         init_plane_object(obj, line);
     } else if (strlcmp(type, "sphere")) {
         init_sphere_object(obj, line);
+    } else if (strlcmp(type, "light")) {
+        init_light_object(obj, line);
     }
 }
 
@@ -210,16 +337,20 @@ void construct_scene(struct file_contents *csvfc, struct scene *scene)
 
     struct object *objs = get_csv_objects(csvfc, nobjs);
 
+    struct light *lights;
     struct camera *cameras;
     struct plane *planes;
     struct sphere *spheres;
+    u32 num_lights = 0;
     u32 num_cameras = 0;
     u32 num_planes = 0;
     u32 num_spheres = 0;
 
     for (int i = 0; i < nobjs; i++) {
         struct object *obj = &objs[i];
-        if (obj->type == OBJ_CAMERA) {
+        if (obj->type == OBJ_LIGHT) {
+            num_lights++;
+        } else if (obj->type == OBJ_CAMERA) {
             num_cameras++;
         } else if (obj->type == OBJ_PLANE) {
             num_planes++;
@@ -228,36 +359,38 @@ void construct_scene(struct file_contents *csvfc, struct scene *scene)
         }
     }
 
+    lights = malloc(sizeof(struct light) * num_lights);
     cameras = malloc(sizeof(struct camera) * num_cameras);
     planes = malloc(sizeof(struct plane) * num_planes);
     spheres = malloc(sizeof(struct sphere) * num_spheres);
 
+    u32 light_index = 0;
     u32 camera_index = 0;
     u32 plane_index = 0;
     u32 sphere_index = 0;
 
     for (int i = 0; i < nobjs; i++) {
         struct object *obj = &objs[i];
-        if (obj->type == OBJ_CAMERA) {
-            struct camera *cam = &cameras[camera_index++];
-            cam->width = obj->camera.width;
-            cam->height = obj->camera.height;
+        if (obj->type == OBJ_LIGHT) {
+            struct light *light = &lights[light_index++];
+            memcpy(light, &obj->light, sizeof(struct light));
+        } else if (obj->type == OBJ_CAMERA) {
+            struct camera *camera = &cameras[camera_index++];
+            memcpy(camera, &obj->camera, sizeof(struct camera));
         } else if (obj->type == OBJ_PLANE) {
             struct plane *plane = &planes[plane_index++];
-            plane->color = obj->plane.color;
-            plane->pos = obj->plane.pos;
-            plane->norm = obj->plane.norm;
+            memcpy(plane, &obj->plane, sizeof(struct plane));
         } else if (obj->type == OBJ_SPHERE) {
             struct sphere *sphere = &spheres[sphere_index++];
-            sphere->color = obj->sphere.color;
-            sphere->pos = obj->sphere.pos;
-            sphere->rad = obj->sphere.rad;
+            memcpy(sphere, &obj->sphere, sizeof(struct sphere));
         }
     }
 
+    scene->lights = lights;
     scene->spheres = spheres;
     scene->planes = planes;
     scene->cameras = cameras;
+    scene->num_lights = num_lights;
     scene->num_spheres = num_spheres;
     scene->num_planes = num_planes;
     scene->num_cameras = num_cameras;
