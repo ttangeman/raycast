@@ -25,6 +25,7 @@ void free_scene(struct scene *scene)
     free(scene->spheres);
     free(scene->planes);
     free(scene->cameras);
+    free(scene->lights);
     free(scene);
 }
 
