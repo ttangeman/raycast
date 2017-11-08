@@ -323,8 +323,9 @@ static struct object *get_csv_objects(struct file_contents *csvfc, u32 nobjs)
 
         get_line(csvfc, temp);
         remove_all_spaces(temp, line);
-        parse_line(obj, line);
-
+        if (line[0] != '#') {
+            parse_line(obj, line);
+        }
     }
     return objs;
 }
