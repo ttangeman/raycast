@@ -50,7 +50,7 @@ static double sphere_intersection_check(struct sphere *sphere, v3 ro, v3 rd)
 
     double disc = b*b - 4*c;
 
-    if (disc < 0) {
+    if (disc < 0.00001) {
         return -1;
     }
 
@@ -83,7 +83,7 @@ static double plane_intersection_check(struct plane *plane, v3 ro, v3 rd)
     double vo = v3_dot(plane_vec, norm);
     double vd = v3_dot(norm, rd);
 
-    if (vd > 0) {
+    if (vd > 0.00001) {
         return -1;
     }
 
