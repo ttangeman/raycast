@@ -330,6 +330,41 @@ static struct object *get_csv_objects(struct file_contents *csvfc, u32 nobjs)
     return objs;
 }
 
+static inline void error_check_objects(struct object *objects, int num_objs)
+{
+    for (int i = 0; i < num_objs; i++) {
+        struct object *obj = &objects[i];
+        switch (obj->type) {
+        case OBJ_CAMERA:
+            if (obj->camera.width == 0) {
+                fprintf(stderr, "Error: camera initialized without a width!\n");
+                free(objects);
+                exit(EXIT_FAILURE);
+            } else if (obj->camera.height == 0) {
+                fprintf(stderr, "Error: camera initialized without a height!\n");
+                free(objects);
+                exit(EXIT_FAILURE);
+            }
+            break;
+       case OBJ_LIGHT:
+            if (obj->light.theta) {
+                v3 dir = obj->light.direction;
+                if ((int)dir.x == 0 && (int)!dir.y == 0 && (int)!dir.z == 0) {
+                    fprintf(stderr, "Error: a spotlight was specified without a direction!\n");
+                    free(objects);
+                    exit(EXIT_FAILURE);
+                }
+            }
+            break;
+       case OBJ_UNKNOWN:
+            fprintf(stderr, "Error: an object was specified without a type!\n");
+            free(objects);
+            exit(EXIT_FAILURE);
+            break;
+        }
+    }
+}
+
 // Simply takes each individual object from the object array and constructs
 // 3 arrays of cameras, spheres, and planes
 void construct_scene(struct file_contents *csvfc, struct scene *scene)
@@ -337,6 +372,7 @@ void construct_scene(struct file_contents *csvfc, struct scene *scene)
     u32 nobjs = get_num_objs((char *)csvfc->memory, csvfc->size);
 
     struct object *objs = get_csv_objects(csvfc, nobjs);
+    error_check_objects(objs, nobjs);
 
     struct light *lights;
     struct camera *cameras;
