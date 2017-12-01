@@ -26,6 +26,9 @@ struct sphere {
     color3f specular;
     v3 pos;
     double rad;
+    float reflectivity;
+    float refractivity;
+    float ior;
 };
 
 struct plane {
@@ -33,6 +36,9 @@ struct plane {
     color3f diffuse;
     color3f specular;
     v3 pos, norm;
+    float reflectivity;
+    float refractivity;
+    float ior;
 };
 
 struct camera {

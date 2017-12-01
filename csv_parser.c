@@ -146,6 +146,10 @@ static void init_plane_object(struct object *obj, char *line)
     color3f diffuse;
     color3f specular;
     v3 pos, norm;
+    float reflectivity;
+    float refractivity;
+    float ior;
+
     char *token;
     while((token = strsep(&line, ":")) != NULL) {
         if (strlcmp(token, "color")) {
@@ -202,6 +206,15 @@ static void init_plane_object(struct object *obj, char *line)
             norm.x = atof(x);
             norm.y = atof(y);
             norm.z = atof(z);
+        } else if (strlcmp (token, "reflectivity")) {
+            char *reflect = strsep(&line, ",");
+            reflectivity = atof(reflect);
+        } else if (strlcmp (token, "refractivity")) {
+            char *refract = strsep(&line, ",");
+            refractivity = atof(refract);
+        } else if (strlcmp (token, "ior")) {
+            char *aior = strsep(&line, ",");
+            ior = atof(aior);
         }
     }
     obj->type = OBJ_PLANE;
@@ -210,6 +223,9 @@ static void init_plane_object(struct object *obj, char *line)
     obj->plane.specular = specular;
     obj->plane.pos = pos;
     obj->plane.norm = norm;
+    obj->plane.reflectivity = reflectivity;
+    obj->plane.refractivity = refractivity;
+    obj->plane.ior = ior;
 }
 
 static void init_sphere_object(struct object *obj, char *line)
@@ -218,6 +234,9 @@ static void init_sphere_object(struct object *obj, char *line)
     color3f diffuse;
     color3f specular;
     float radius;
+    float reflectivity;
+    float refractivity;
+    float ior;
     v3 pos;
     char *token;
 
@@ -269,6 +288,15 @@ static void init_sphere_object(struct object *obj, char *line)
         } else if (strlcmp (token, "radius")) {
             char *arad = strsep(&line, ",");
             radius = atof(arad);
+        } else if (strlcmp (token, "reflectivity")) {
+            char *reflect = strsep(&line, ",");
+            reflectivity = atof(reflect);
+        } else if (strlcmp (token, "refractivity")) {
+            char *refract = strsep(&line, ",");
+            refractivity = atof(refract);
+        } else if (strlcmp (token, "ior")) {
+            char *aior = strsep(&line, ",");
+            ior = atof(aior);
         }
     }
 
@@ -278,6 +306,9 @@ static void init_sphere_object(struct object *obj, char *line)
     obj->sphere.specular = specular;
     obj->sphere.pos = pos;
     obj->sphere.rad = radius;
+    obj->sphere.reflectivity = reflectivity;
+    obj->sphere.refractivity = refractivity;
+    obj->sphere.ior = ior;
 }
 
 static void parse_line(struct object *obj, char *line)
