@@ -2,6 +2,8 @@
 Raycast is a basic raycaster that is capable of projecting images fed in by CSV files.
 Projected images are written to disk in a PPM P6 image format.
 
+![image](example.png)
+
 # Installation
 Simply use the Makefile to build all of the project's binaries and libraries.
 
